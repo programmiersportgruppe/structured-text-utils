@@ -1,0 +1,6 @@
+* Embed jsed.js into the executable
+* Test compilation on linux
+* Introduce debug mode that reads jsed.js from file system
+* Support for streaming multiple roots (e.g. line based json)
+* Support for joining multiple roots.
+
