@@ -4,6 +4,7 @@ Open
 * Error handling
     * syntax errors in script.
     * problems with parsing incoming json
+* Support transformation code supplied as file (-f option)
 * Add js helper functions/ methods
     * mapping objects
     * creating objects from lists
