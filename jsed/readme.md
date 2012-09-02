@@ -13,7 +13,10 @@ Compile
 * To compile and run basic tests use the `build.sh` script provided. Please note that potentially
   you might have to fix the include and the lib path.
 
+Install
+-------
 
+* The `install.sh` script can be used to install jsed
 
 
 
