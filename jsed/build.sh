@@ -8,7 +8,7 @@ PREFIX=/usr/local
 g++ jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
 
 INPUT='{"x":"value"}'
-OUTPUT=`echo $INPUT | jsed 'function(x) x.x'`
+OUTPUT=`echo $INPUT | ./jsed 'function(x) x.x'`
 if [ $OUTPUT == "\"value\"" ]; then
     echo TEST PASSED
 else
