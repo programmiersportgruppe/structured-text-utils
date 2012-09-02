@@ -1,4 +1,6 @@
 #!/bin/bash
+# Script to fetch, make and install spidermonkey
+
 set -x
 
 mkdir deps

@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-
+#this script wraps the string on stdin into a variable initialistion expression.
 
 def decorate_line(js_line)
     return  '"' + js_line.gsub(/\\/,"\\"*4).gsub(/\"/,"\\\"") + '\\n"'
