@@ -1,10 +1,10 @@
 #include <iostream>
 
 #include "js.cpp"
-
+#include "jsedjs.h"
 using namespace std;
 
-
+/* Yes, I am suitably embarressed, needs fixing */
 const char *readStdIn() {
   string result("");
   string lf("\n");
@@ -19,7 +19,6 @@ const char *readStdIn() {
   strcpy(rv, result.c_str());
   return rv;
 }
-
 
 void usage(){
     printf("Usage: jsed <script> | -f <scriptFile>\n");
@@ -42,7 +41,7 @@ int main(int argc, const char *argv[])
     jsval rval=js.evaluateScript(script);
     js.setProperty("transformation", &rval);
     js.setProperty("input", input);
-    rval = js.executeScriptFile("jsed.js");
+    rval = js.evaluateScript(jsSource);
     printf("%s\n", js.jsvalToString(rval));
    return 0;
 }
