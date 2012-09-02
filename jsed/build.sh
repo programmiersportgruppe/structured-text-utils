@@ -2,6 +2,10 @@
 
 PREFIX=/usr/local
 
+
+rm jsed
+rm jsedjs.h
+
 # Generate jsedjs.h
 ./convert-js-to-header.rb <jsed.js >jsedjs.h
 
