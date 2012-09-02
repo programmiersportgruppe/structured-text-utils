@@ -78,7 +78,7 @@ class JSInterpreter {
         uintN lineno = 0;
         ok = JS_EvaluateScript(cx, global, script, strlen(script),
                                filename, lineno, &rval);
-        if ((rval == NULL) || rval == JS_FALSE){
+        if (rval == JSVAL_NULL || rval == JS_FALSE){
             throw "Could not evaluate script";
         }
 
@@ -91,7 +91,7 @@ class JSInterpreter {
         JSObject *jsedScript = JS_CompileFile(cx, global , "jsed.js");
         JS_ExecuteScript(cx, global, jsedScript, &rval);
 
-        if (rval == NULL || rval == JS_FALSE){
+        if (rval == JSVAL_NULL || rval == JS_FALSE){
             throw "Could not evaluate script";
         }
         return rval;
@@ -103,11 +103,11 @@ class JSInterpreter {
         return JS_EncodeString(cx, str);
     }
 
-    void setProperty(char *name, jsval *val){
+    void setProperty(const char *name, jsval *val){
         JS_SetProperty(cx, global, name, val);
     }
 
-    void setProperty(char *name, const char *value){
+    void setProperty(const char *name, const char *value){
         JSString *inputJs;
         inputJs = JS_NewStringCopyN(cx, value, strlen(value));
         jsval inputJsVal;
