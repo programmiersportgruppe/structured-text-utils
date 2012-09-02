@@ -5,11 +5,13 @@ Open
     * syntax errors in script.
     * problems with parsing incoming json
 * Support transformation code supplied as file (-f option)
+* Enable output of raw string
 * Add js helper functions/ methods
     * mapping objects
     * creating objects from lists
     * shelling out
-* Test compilation on linux
+    * creating csv
+* Test unicode behaviour (for scripts as well as input...)
 * Introduce debug mode that reads jsed.js from file system
 * Support for streaming multiple roots (e.g. line based json)
 * Support for joining multiple roots.
@@ -18,4 +20,5 @@ Done
 ----
 
 * Embed jsed.js into the executable
+* Test compilation on linux
 
