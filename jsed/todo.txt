@@ -1,4 +1,9 @@
-* Embed jsed.js into the executable
+Open
+----
+
+* Error handling
+    * syntax errors in script.
+    * problems with parsing incoming json
 * Add js helper functions/ methods
     * mapping objects
     * creating objects from lists
@@ -7,4 +12,9 @@
 * Introduce debug mode that reads jsed.js from file system
 * Support for streaming multiple roots (e.g. line based json)
 * Support for joining multiple roots.
+
+Done
+----
+
+* Embed jsed.js into the executable
 
