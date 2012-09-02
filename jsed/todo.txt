@@ -1,4 +1,8 @@
 * Embed jsed.js into the executable
+* Add js helper functions/ methods
+    * mapping objects
+    * creating objects from lists
+    * shelling out
 * Test compilation on linux
 * Introduce debug mode that reads jsed.js from file system
 * Support for streaming multiple roots (e.g. line based json)
