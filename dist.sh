@@ -2,6 +2,8 @@
 #
 # builds all projects and creates distribution archive
 
+set -e
+
 VERSION=0.1
 PLATFORM="`uname`-`uname -m`"
 ARCHIVE_NAME=structured-text-utils-$VERSION-$PLATFORM

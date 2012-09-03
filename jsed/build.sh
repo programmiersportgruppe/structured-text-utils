@@ -1,6 +1,8 @@
 #!/bin/bash
 # Compiling and testing jsed
 
+set -e
+
 PREFIX=/usr/local
 
 
