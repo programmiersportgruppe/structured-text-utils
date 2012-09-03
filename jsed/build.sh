@@ -1,10 +1,10 @@
 #!/bin/bash
 # Compiling and testing jsed
-
 set -e
 
-PREFIX=/usr/local
+echo Building jsed
 
+PREFIX=/usr/local
 
 rm jsed
 rm jsedjs.h
