@@ -1,0 +1,10 @@
+name:           stpl
+version:        0.1
+synopsis:       StringTemplate for the command line with JSON models
+build-type:     Simple
+cabal-version:  >= 1.2
+
+executable stpl
+    main-is:        Stpl.hs
+    build-depends:  base >4 && <5, containers, HStringTemplate, json, text
+    ghc-options:    -Werror -Wall -fno-warn-orphans -fwarn-tabs
