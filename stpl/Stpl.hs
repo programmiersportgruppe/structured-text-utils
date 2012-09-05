@@ -10,15 +10,18 @@ import Text.JSON
 import Text.StringTemplate
 
 main :: IO ()
-main = do
-    args <- getArgs
-    case getOpt RequireOrder options args of
-        (actions, [dataFile], [])     -> processTemplate actions (readFile dataFile)
-        (actions, [],         [])     -> processTemplate actions getContents
-        (_,        _:_:_,     errors) -> usage $ "Too many arguments\n" : errors
-        (_,        _,         errors) -> usage errors
+main = getArgs >>= getConfig >>= processTemplate
 
-usage :: [String] -> IO ()
+getConfig :: [String] -> IO Config
+getConfig args = case getOpt RequireOrder options args of
+    (actions, positionalArgs, []) -> case positionalArgs of
+        [] -> return optionsConfig
+        [dataFile] -> return optionsConfig {readData = readFile dataFile}
+        _ -> usage ["Too many positional arguments\n"]
+        where optionsConfig = foldl (flip id) defaultConfig actions
+    (_, _, errors) -> usage errors
+
+usage :: [String] -> IO a
 usage errors = do
     progName <- getProgName
     mapM_ (hPutStr stderr) errors
@@ -27,13 +30,15 @@ usage errors = do
 
 data Config = Config {
     groupPath :: Maybe FilePath,
-    templateName :: String
+    templateName :: String,
+    readData :: IO String
   }
 
 defaultConfig :: Config
 defaultConfig = Config {
     groupPath = Nothing,
-    templateName = ""
+    templateName = "",
+    readData = getContents
   }
 
 options :: [OptDescr (Config -> Config)]
@@ -47,10 +52,9 @@ options = [
         "Template name if using groups, otherwise template path (stdin if not given)"
   ]
 
-processTemplate :: [Config -> Config] -> IO String -> IO ()
-processTemplate actions getData = do
-    let config = foldl (flip id) defaultConfig actions
-    modelJSON <- getData
+processTemplate :: Config -> IO ()
+processTemplate config = do
+    modelJSON <- readData config
     template <- getTemplate config
     let modelResult = decode $ strip modelJSON :: Result JSValue
     case modelResult of
@@ -60,7 +64,7 @@ processTemplate actions getData = do
 getTemplate :: Config -> IO (StringTemplate String)
 getTemplate config = case templateName config of
     "" -> do
-        usage ["Missing template option"]
+        _ <- usage ["Missing template option"]
         fail "Missing template option"
     name -> case groupPath config of
         Nothing -> newSTMP <$> readFile name
