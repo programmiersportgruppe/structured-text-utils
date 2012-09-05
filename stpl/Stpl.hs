@@ -17,20 +17,20 @@ getConfig args = case getOpt RequireOrder options args of
     (actions, positionalArgs, []) -> case positionalArgs of
         [] -> return optionsConfig
         [dataFile] -> return optionsConfig {readData = readFile dataFile}
-        _ -> usage ["Too many positional arguments\n"]
+        _ -> showUsage ["Too many positional arguments\n"]
         where optionsConfig = foldl (flip id) defaultConfig actions
-    (_, _, errors) -> usage errors
+    (_, _, errors) -> showUsage errors
 
 validateConfig :: Config -> IO Config
 validateConfig config = case templateName config of
-    "" -> usage ["Missing template option\n"]
+    "" -> showUsage ["Missing template option\n"]
     _ -> return config
 
-usage :: [String] -> IO a
-usage errors = do
+showUsage :: [String] -> IO a
+showUsage errors = do
     progName <- getProgName
-    mapM_ (hPutStr stderr) errors
-    die $ usageInfo ("\nUsage: " ++ progName ++ " -t TEMPLATE [OPTIONS...] [DATA_FILE]") options
+    let usage = "Usage: " ++ progName ++ " -t TEMPLATE [OPTIONS...] [DATA_FILE]"
+    die $ usageInfo (concat errors ++ '\n' : usage) options
 
 die :: String -> IO a
 die e = hPutStrLn stderr e >> exitFailure
@@ -52,11 +52,11 @@ options :: [OptDescr (Config -> Config)]
 options = [
     Option ['g'] ["group"]
         (ReqArg (\arg opts -> opts {groupPath = Just arg}) "DIR")
-        "Template group directory",
+        "directory containing templates",
 
     Option ['t'] ["template"]
         (ReqArg (\arg opts -> opts {templateName = arg}) "TEMPLATE")
-        "Template name if using groups, otherwise template path (stdin if not given)"
+        "template path (or name if using groups)"
   ]
 
 processTemplate :: Config -> IO ()
