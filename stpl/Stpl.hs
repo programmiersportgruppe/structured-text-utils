@@ -30,8 +30,10 @@ usage :: [String] -> IO a
 usage errors = do
     progName <- getProgName
     mapM_ (hPutStr stderr) errors
-    hPutStrLn stderr $ usageInfo ("\nUsage: " ++ progName ++ " -t TEMPLATE [OPTIONS...] [DATA_FILE]") options
-    exitFailure
+    die $ usageInfo ("\nUsage: " ++ progName ++ " -t TEMPLATE [OPTIONS...] [DATA_FILE]") options
+
+die :: String -> IO a
+die e = hPutStrLn stderr e >> exitFailure
 
 data Config = Config {
     groupPath :: Maybe FilePath,
@@ -64,7 +66,7 @@ processTemplate config = do
     let modelResult = decode $ strip modelJSON :: Result JSValue
     case modelResult of
         Ok model -> putStrLn . render $ withContext template model
-        Error err -> hPutStrLn stderr $ "Error while parsing JSON: " ++ err
+        Error err -> die $ "Error while parsing JSON: " ++ err
 
 getTemplate :: Config -> IO (StringTemplate String)
 getTemplate config = case groupPath config of
@@ -73,7 +75,7 @@ getTemplate config = case groupPath config of
         group <- directoryGroup templateGroup
         case getStringTemplate name group of
             Just template -> return template
-            Nothing -> hPutStrLn stderr ("Error trying to get template " ++ name) >> exitFailure
+            Nothing -> die $ "Error trying to get template " ++ name
     where name = templateName config
 
 strip :: String -> String
