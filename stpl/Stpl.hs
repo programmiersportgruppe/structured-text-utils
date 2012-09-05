@@ -10,7 +10,7 @@ import Text.JSON
 import Text.StringTemplate
 
 main :: IO ()
-main = getArgs >>= getConfig >>= processTemplate
+main = getArgs >>= getConfig >>= validateConfig >>= processTemplate
 
 getConfig :: [String] -> IO Config
 getConfig args = case getOpt RequireOrder options args of
@@ -20,6 +20,11 @@ getConfig args = case getOpt RequireOrder options args of
         _ -> usage ["Too many positional arguments\n"]
         where optionsConfig = foldl (flip id) defaultConfig actions
     (_, _, errors) -> usage errors
+
+validateConfig :: Config -> IO Config
+validateConfig config = case templateName config of
+    "" -> usage ["Missing template option\n"]
+    _ -> return config
 
 usage :: [String] -> IO a
 usage errors = do
@@ -62,17 +67,14 @@ processTemplate config = do
         Error err -> hPutStrLn stderr $ "Error while parsing JSON: " ++ err
 
 getTemplate :: Config -> IO (StringTemplate String)
-getTemplate config = case templateName config of
-    "" -> do
-        _ <- usage ["Missing template option"]
-        fail "Missing template option"
-    name -> case groupPath config of
-        Nothing -> newSTMP <$> readFile name
-        Just templateGroup -> do
-            group <- directoryGroup templateGroup
-            case getStringTemplate name group of
-                Just template -> return template
-                Nothing -> hPutStrLn stderr ("Error trying to get template " ++ name) >> exitFailure
+getTemplate config = case groupPath config of
+    Nothing -> newSTMP <$> readFile name
+    Just templateGroup -> do
+        group <- directoryGroup templateGroup
+        case getStringTemplate name group of
+            Just template -> return template
+            Nothing -> hPutStrLn stderr ("Error trying to get template " ++ name) >> exitFailure
+    where name = templateName config
 
 strip :: String -> String
 strip = T.unpack . T.strip . T.pack
