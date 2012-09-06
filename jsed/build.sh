@@ -5,14 +5,20 @@ set -e
 echo Building jsed
 
 PREFIX=/usr/local
+STATIC_PREFIX=deps/js-1.8.5/js/src/dist
 
-rm jsed
-rm jsedjs.h
+rm -f jsed
+rm -f jsedjs.h
 
 # Generate jsedjs.h
 ./convert-js-to-header.rb <jsed.js >jsedjs.h
 
-g++ jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
+if [ "$*" = "--static" ]
+then
+    g++ jsed.cpp -o jsed -I$STATIC_PREFIX/include -Wl,$STATIC_PREFIX/lib/libjs_static.a
+else
+    g++ jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
+fi
 
 INPUT='{"x":"value"}'
 OUTPUT=`echo $INPUT | ./jsed 'function(x) x.x'`
