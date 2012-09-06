@@ -45,7 +45,7 @@ cat >letter.json <<'END'
 END
 
 # WHEN
-../stpl/stpl -t letter.tpl letter.json > output
+../stpl/stpl -f letter.tpl letter.json > output
 
 # THEN
 

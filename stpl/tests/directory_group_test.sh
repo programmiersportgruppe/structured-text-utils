@@ -29,7 +29,7 @@ cat >model.json <<'END'
 END
 
 # WHEN
-../stpl/stpl -g somedir -t A model.json >output
+../stpl/stpl -g somedir -n A model.json >output
 
 # THEN
 diff - output <<'END'

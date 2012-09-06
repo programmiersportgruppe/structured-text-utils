@@ -14,7 +14,7 @@ Hello $name$!
 END
 
 # WHEN
-echo '{"name": "World"}' | ../stpl/stpl -t template.st >output
+echo '{"name": "World"}' | ../stpl/stpl -f template.st >output
 
 # THEN
 diff - output <<'END'

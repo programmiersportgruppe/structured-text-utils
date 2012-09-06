@@ -10,73 +10,67 @@ import Text.JSON
 import Text.StringTemplate
 
 main :: IO ()
-main = getArgs >>= getConfig >>= validateConfig >>= processTemplate
+main = getArgs >>= processArgs >>= uncurry processTemplate
 
-getConfig :: [String] -> IO Config
-getConfig args = case getOpt RequireOrder options args of
-    (actions, positionalArgs, []) -> case positionalArgs of
-        [] -> return optionsConfig
-        [dataFile] -> return optionsConfig {readData = readFile dataFile}
-        _ -> showUsage ["Too many positional arguments\n"]
-        where optionsConfig = foldl (flip id) defaultConfig actions
+processArgs :: [String] -> IO (StringTemplate String, String)
+processArgs args = case getOpt RequireOrder options args of
+    (actions, positionalArgs, []) -> do
+        template <- getTemplate $ foldl (flip id) NoTemplate actions
+        modelJSON <- getModel positionalArgs
+        return (template, modelJSON)
     (_, _, errors) -> showUsage errors
 
-validateConfig :: Config -> IO Config
-validateConfig config = case templateName config of
-    "" -> showUsage ["Missing template option\n"]
-    _ -> return config
+getTemplate :: TemplateDef -> IO (StringTemplate String)
+getTemplate NoTemplate = showUsage ["No template specified\n"]
+getTemplate (Template readTemplate) = newSTMP <$> readTemplate
+getTemplate (GroupTemplate group "") = showUsage ["Missing name for group " ++ group]
+getTemplate (GroupTemplate "" name) = showUsage ["Missing group for name " ++ name]
+getTemplate (GroupTemplate group name) = do
+    templateGroup <- directoryGroup group
+    case getStringTemplate name templateGroup of
+        Just template -> return template
+        Nothing -> die $ "Error trying to get template " ++ name ++ " from group " ++ group
+
+getModel :: [String] -> IO String
+getModel [] = getContents
+getModel [file] = readFile file
+getModel _ = showUsage ["Too many arguments\n"]
 
 showUsage :: [String] -> IO a
 showUsage errors = do
     progName <- getProgName
-    let usage = "Usage: " ++ progName ++ " -t TEMPLATE [OPTIONS...] [DATA_FILE]"
+    let usage = "Usage: " ++ progName ++ " -t STRING        [DATA_FILE]\n" ++
+                "       " ++ progName ++ " -f FILE          [DATA_FILE]\n" ++
+                "       " ++ progName ++ " -g DIR -n STRING [DATA_FILE]\n"
     die $ usageInfo (concat errors ++ '\n' : usage) options
 
 die :: String -> IO a
 die e = hPutStrLn stderr e >> exitFailure
 
-data Config = Config {
-    groupPath :: Maybe FilePath,
-    templateName :: String,
-    readData :: IO String
-  }
+data TemplateDef = NoTemplate | Template (IO String) | GroupTemplate String String
 
-defaultConfig :: Config
-defaultConfig = Config {
-    groupPath = Nothing,
-    templateName = "",
-    readData = getContents
-  }
-
-options :: [OptDescr (Config -> Config)]
+options :: [OptDescr (TemplateDef -> TemplateDef)]
 options = [
-    Option ['g'] ["group"]
-        (ReqArg (\arg opts -> opts {groupPath = Just arg}) "DIR")
-        "directory containing templates",
-
     Option ['t'] ["template"]
-        (ReqArg (\arg opts -> opts {templateName = arg}) "TEMPLATE")
-        "template path (or name if using groups)"
+        (ReqArg (\ t _ -> Template $ return t) "STRING")
+        "template string to render",
+    Option ['f'] ["file"]
+        (ReqArg (\ f _ -> Template $ readFile f) "FILE")
+        "template file to render",
+    Option ['g'] ["group"]
+        (ReqArg (\ g d -> GroupTemplate g (case d of GroupTemplate _ n -> n; _ -> "")) "DIR")
+        "directory of template files",
+    Option ['n'] ["name"]
+        (ReqArg (\ n d -> GroupTemplate (case d of GroupTemplate g _ -> g; _ -> "") n) "STRING")
+        "name of the root template (with -g)"
   ]
 
-processTemplate :: Config -> IO ()
-processTemplate config = do
-    modelJSON <- readData config
-    template <- getTemplate config
+processTemplate :: StringTemplate String -> String -> IO ()
+processTemplate template modelJSON = do
     let modelResult = decode $ strip modelJSON :: Result JSValue
     case modelResult of
         Ok model -> putStrLn . render $ withContext template model
         Error err -> die $ "Error while parsing JSON: " ++ err
-
-getTemplate :: Config -> IO (StringTemplate String)
-getTemplate config = case groupPath config of
-    Nothing -> newSTMP <$> readFile name
-    Just templateGroup -> do
-        group <- directoryGroup templateGroup
-        case getStringTemplate name group of
-            Just template -> return template
-            Nothing -> die $ "Error trying to get template " ++ name
-    where name = templateName config
 
 strip :: String -> String
 strip = T.unpack . T.strip . T.pack

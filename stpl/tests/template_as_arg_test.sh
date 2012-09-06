@@ -9,21 +9,16 @@ mkdir temp
 cd temp
 
 # GIVEN
-cat >template.st <<'END'
-This is it: $it$
-END
-
-# and
-cat >model.json <<'END'
-42
+cat >data.json <<'END'
+{"name":"Mom"}
 END
 
 # WHEN
-../stpl/stpl -f template.st model.json >output
+../stpl/stpl -t 'Look $name$, no template file!' data.json > output
 
 # THEN
 diff - output <<'END'
-This is it: 42
+Look Mom, no template file!
 END
 
 cd ..
