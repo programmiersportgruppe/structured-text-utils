@@ -70,13 +70,13 @@ class JSInterpreter {
             throw "can't create runtime";
     }
 
-    jsval evaluateScript(const char *script){
+    jsval evaluateScript(std::string script){
         jsval rval;
         JSBool ok;
         const char *filename = "noname";
 
         uintN lineno = 0;
-        ok = JS_EvaluateScript(cx, global, script, strlen(script),
+        ok = JS_EvaluateScript(cx, global, script.c_str(), script.length(),
                                filename, lineno, &rval);
         if (rval == JSVAL_NULL || rval == JS_FALSE){
             throw "Could not evaluate script";
@@ -103,16 +103,16 @@ class JSInterpreter {
         return JS_EncodeString(cx, str);
     }
 
-    void setProperty(const char *name, jsval *val){
-        JS_SetProperty(cx, global, name, val);
+    void setProperty(std::string name, jsval *val){
+        JS_SetProperty(cx, global, name.c_str(), val);
     }
 
-    void setProperty(const char *name, const char *value){
+    void setProperty(std::string name, std::string value){
         JSString *inputJs;
-        inputJs = JS_NewStringCopyN(cx, value, strlen(value));
+        inputJs = JS_NewStringCopyN(cx, value.c_str(), value.length());
         jsval inputJsVal;
         inputJsVal=STRING_TO_JSVAL(inputJs);
-        JS_SetProperty(cx, global, name, &inputJsVal);
+        JS_SetProperty(cx, global, name.c_str(), &inputJsVal);
     }
 
     ~JSInterpreter(){

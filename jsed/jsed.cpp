@@ -4,8 +4,25 @@
 #include "jsedjs.h"
 using namespace std;
 
+
+class Transformer {
+
+    private:
+    JSInterpreter interpreter;
+
+    public:
+
+    Transformer(JSInterpreter interpreter) : interpreter(interpreter){}
+
+
+    std::string transform(std::string jsonInput){
+        return std::string("");
+    }
+
+};
+
 /* Yes, I am suitably embarressed, needs fixing */
-const char *readStdIn() {
+std::string readStdIn() {
   string result("");
   string lf("\n");
   while(cin) {
@@ -15,9 +32,7 @@ const char *readStdIn() {
     result+=lf;
   };
 
-  char *rv = (char*)malloc(strlen(result.c_str()));
-  strcpy(rv, result.c_str());
-  return rv;
+  return result;
 }
 
 void usage(){
@@ -37,7 +52,7 @@ int main(int argc, const char *argv[])
 
     JSInterpreter js;
 
-    const char *input = readStdIn();
+    std::string input = readStdIn();
     jsval rval=js.evaluateScript(script);
     js.setProperty("transformation", &rval);
     js.setProperty("input", input);
