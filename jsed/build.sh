@@ -22,9 +22,9 @@ fi
 
 INPUT='{"x":"value"}'
 OUTPUT=`echo $INPUT | ./jsed 'function(x) x.x'`
-if [ $OUTPUT == "\"value\"" ]; then
+if [ "$OUTPUT" = "\"value\"" ]; then
     echo TEST PASSED
 else
-    echo TEST FAILED
+    echo TEST FAILED: Expected \"value\" but got $OUTPUT
 fi
 
