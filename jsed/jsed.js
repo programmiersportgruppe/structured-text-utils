@@ -1,3 +1,5 @@
-var inputJson = JSON.parse(input)
-JSON.stringify(transformation(inputJson))
+function(input, transformation){
+    var inputJson = JSON.parse(input)
+    return JSON.stringify(transformation(inputJson))
+}
 

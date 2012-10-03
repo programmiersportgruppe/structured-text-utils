@@ -53,11 +53,10 @@ int main(int argc, const char *argv[])
     JSInterpreter js;
 
     std::string input = readStdIn();
-    jsval rval=js.evaluateScript(script);
-    js.setProperty("transformation", &rval);
-    js.setProperty("input", input);
-    rval = js.evaluateScript(jsSource);
-    printf("%s\n", js.jsvalToString(rval));
-   return 0;
+    Function transformation=js.evaluateScript(script);
+    Function transformationWrapper = js.evaluateScript(jsSource);
+    std::string result = transformationWrapper.invoke(input, transformation);
+    std::cout << result;
+    return 0;
 }
 

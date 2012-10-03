@@ -27,6 +27,19 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
             message);
 }
 
+class JSInterpreter;
+class Function;
+
+class Function {
+    private:
+    JSInterpreter& interpreter;
+    jsval jsFunction;
+
+    public:
+    Function(JSInterpreter&, jsval);
+    operator jsval();
+    std::string invoke(std::string input, Function transformation);
+};
 
 class JSInterpreter {
     public:
@@ -70,7 +83,7 @@ class JSInterpreter {
             throw "can't create runtime";
     }
 
-    jsval evaluateScript(std::string script){
+    Function evaluateScript(std::string script){
         jsval rval;
         JSBool ok;
         const char *filename = "noname";
@@ -82,19 +95,7 @@ class JSInterpreter {
             throw "Could not evaluate script";
         }
 
-        return rval;
-    }
-
-    jsval executeScriptFile(const char *script){
-        jsval rval;
-
-        JSObject *jsedScript = JS_CompileFile(cx, global , "jsed.js");
-        JS_ExecuteScript(cx, global, jsedScript, &rval);
-
-        if (rval == JSVAL_NULL || rval == JS_FALSE){
-            throw "Could not evaluate script";
-        }
-        return rval;
+        return Function(*this, rval);
     }
 
     char *jsvalToString(jsval val){
@@ -103,16 +104,16 @@ class JSInterpreter {
         return JS_EncodeString(cx, str);
     }
 
-    void setProperty(std::string name, jsval *val){
-        JS_SetProperty(cx, global, name.c_str(), val);
+    jsval asJsValue(std::string value){
+        JSString *intermediateForm = JS_NewStringCopyN(cx, value.c_str(), value.length());
+        return STRING_TO_JSVAL(intermediateForm);
     }
 
-    void setProperty(std::string name, std::string value){
-        JSString *inputJs;
-        inputJs = JS_NewStringCopyN(cx, value.c_str(), value.length());
-        jsval inputJsVal;
-        inputJsVal=STRING_TO_JSVAL(inputJs);
-        JS_SetProperty(cx, global, name.c_str(), &inputJsVal);
+    std::string invoke(Function function, std::string input, Function transformation) {
+        jsval r;
+        jsval args[] = { asJsValue(input), transformation };
+        JS_CallFunctionValue(cx, NULL, function, 2, args, &r);
+        return jsvalToString(r);
     }
 
     ~JSInterpreter(){
@@ -124,4 +125,17 @@ class JSInterpreter {
 
 };
 
+
+Function::Function(JSInterpreter &interpreter, jsval jsFunction):
+    interpreter(interpreter),
+    jsFunction(jsFunction)
+{}
+
+Function::operator jsval(){
+    return jsFunction;
+}
+
+std::string Function::invoke(std::string input, Function transformation) {
+    return interpreter.invoke(*this, input, transformation);
+}
 
