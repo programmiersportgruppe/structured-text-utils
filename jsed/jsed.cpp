@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iterator>
 
 #include "js.cpp"
 #include "jsedjs.h"
@@ -38,27 +39,48 @@ std::string readStdIn() {
   return result;
 }
 
-void usage(){
+void usage() {
     printf("Usage: jsed <script> | -f <scriptFile>\n");
 }
+
+class Line {
+    std::string data;
+    public:
+    friend std::istream &operator>>(std::istream &is, Line &line) {
+        std::getline(is, line.data);
+        return is;
+    }
+    operator std::string() const {
+        return data;
+    }
+};
 
 int main(int argc, const char *argv[])
 {
     const char *script;
-    if (argc == 1) {
+    bool multiple;
+
+    if (argc == 2) {
+        script=argv[1];
+    } else if (argc == 3 && argv[1] == string("-m")) {
+        multiple = true;
+        script=argv[2];
+    } else {
         usage();
         return -1;
-    }
-    if  (argc == 2) {
-        script=argv[1];
     }
 
     JSInterpreter js;
     Function transformation = js.evaluateScript(script);
     Transformer transformer(js, transformation);
-    std::string input = readStdIn();
-    std::string result = transformer(input);
-    std::cout << result;
+
+    if (multiple) {
+        std::transform(istream_iterator<Line>(cin), istream_iterator<Line>(), ostream_iterator<std::string>(cout, "\n"), transformer);
+    } else {
+        std::string input = readStdIn();
+        std::string result = transformer(input);
+        std::cout << result;
+    }
     return 0;
 }
 
