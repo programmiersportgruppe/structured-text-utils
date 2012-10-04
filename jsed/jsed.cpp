@@ -9,9 +9,9 @@ using namespace std;
 class Transformer {
 
     private:
-    JSInterpreter &interpreter;
-    Function transformationWrapper;
-    Function &transformation;
+    const JSInterpreter &interpreter;
+    const Function transformationWrapper;
+    const Function &transformation;
 
     public:
     Transformer(JSInterpreter &interpreter, Function &transformation) :
@@ -20,7 +20,7 @@ class Transformer {
         transformation(transformation)
     {}
 
-    std::string operator()(const std::string &jsonInput) {
+    std::string operator()(const std::string &jsonInput) const {
         return transformationWrapper.invoke(jsonInput, transformation);
     }
 };

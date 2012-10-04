@@ -28,7 +28,6 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 }
 
 class JSInterpreter;
-class Function;
 
 class Function {
     private:
@@ -37,19 +36,18 @@ class Function {
 
     public:
     Function(JSInterpreter&, jsval);
-    operator jsval();
-    std::string invoke(std::string input, Function transformation);
+    operator jsval() const;
+    std::string invoke(std::string input, Function transformation) const;
 };
 
 class JSInterpreter {
-    public:
-
     JSRuntime *rt;
     JSContext *cx;
     JSObject  *global;
 
+    public:
 
-    JSInterpreter(){
+    JSInterpreter() {
         /* Create a JS runtime. You always need at least one runtime per process. */
         rt = JS_NewRuntime(8 * 1024 * 1024);
         if (rt == NULL)
@@ -98,29 +96,33 @@ class JSInterpreter {
         return Function(*this, rval);
     }
 
-    char *jsvalToString(jsval val){
-        JSString *str;
-        str = JS_ValueToString(cx, val);
-        return JS_EncodeString(cx, str);
-    }
-
-    jsval asJsValue(std::string value){
-        JSString *intermediateForm = JS_NewStringCopyN(cx, value.c_str(), value.length());
-        return STRING_TO_JSVAL(intermediateForm);
-    }
-
-    std::string invoke(Function function, std::string input, Function transformation) {
+    std::string invoke(const Function function, std::string input, Function transformation) {
         jsval r;
         jsval args[] = { asJsValue(input), transformation };
         JS_CallFunctionValue(cx, NULL, function, 2, args, &r);
         return jsvalToString(r);
     }
 
-    ~JSInterpreter(){
+    ~JSInterpreter() {
         /* Clean things up and shut down SpiderMonkey. */
         JS_DestroyContext(cx);
         JS_DestroyRuntime(rt);
         JS_ShutDown();
+    }
+
+    private:
+
+    JSInterpreter(const JSInterpreter& that);
+
+    char *jsvalToString(const jsval val) const {
+        JSString *str;
+        str = JS_ValueToString(cx, val);
+        return JS_EncodeString(cx, str);
+    }
+
+    jsval asJsValue(const std::string value) const {
+        JSString *intermediateForm = JS_NewStringCopyN(cx, value.c_str(), value.length());
+        return STRING_TO_JSVAL(intermediateForm);
     }
 
 };
@@ -131,11 +133,11 @@ Function::Function(JSInterpreter &interpreter, jsval jsFunction):
     jsFunction(jsFunction)
 {}
 
-Function::operator jsval(){
+Function::operator jsval() const {
     return jsFunction;
 }
 
-std::string Function::invoke(std::string input, Function transformation) {
+std::string Function::invoke(std::string input, Function transformation) const {
     return interpreter.invoke(*this, input, transformation);
 }
 
