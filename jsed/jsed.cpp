@@ -8,17 +8,20 @@ using namespace std;
 class Transformer {
 
     private:
-    JSInterpreter interpreter;
+    JSInterpreter &interpreter;
+    Function transformationWrapper;
+    Function &transformation;
 
     public:
+    Transformer(JSInterpreter &interpreter, Function &transformation) :
+        interpreter(interpreter),
+        transformationWrapper(interpreter.evaluateScript(jsSource)),
+        transformation(transformation)
+    {}
 
-    Transformer(JSInterpreter interpreter) : interpreter(interpreter){}
-
-
-    std::string transform(std::string jsonInput){
-        return std::string("");
+    std::string operator()(const std::string &jsonInput) {
+        return transformationWrapper.invoke(jsonInput, transformation);
     }
-
 };
 
 /* Yes, I am suitably embarressed, needs fixing */
@@ -51,11 +54,10 @@ int main(int argc, const char *argv[])
     }
 
     JSInterpreter js;
-
+    Function transformation = js.evaluateScript(script);
+    Transformer transformer(js, transformation);
     std::string input = readStdIn();
-    Function transformation=js.evaluateScript(script);
-    Function transformationWrapper = js.evaluateScript(jsSource);
-    std::string result = transformationWrapper.invoke(input, transformation);
+    std::string result = transformer(input);
     std::cout << result;
     return 0;
 }
