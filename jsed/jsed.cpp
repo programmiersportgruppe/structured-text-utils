@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iterator>
-
+#include <algorithm>
 #include "js.cpp"
 #include "jsedjs.h"
 using namespace std;
