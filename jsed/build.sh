@@ -31,11 +31,12 @@ fi
 
 #Test should be able to transform a "pretty" json document.
 
-INPUT=$(cat <<EOF
+INPUT=$(cat <<'EOF'
 {
     "x":"value"
 }
-EOF)
+EOF
+)
 
 OUTPUT=`echo $INPUT | ./jsed 'function(x) x.x'`
 if [ "$OUTPUT" = '"value"' ]; then
@@ -46,15 +47,17 @@ fi
 
 #Test should deal with newline separated json documents in multi document mode
 
-INPUT=$(cat <<EOF
+INPUT=$(cat <<'EOF'
 { "x":"value1" }
 { "x":"value2" }
-EOF)
+EOF
+)
 
-EXPECTED=$(cat <<EOF
+EXPECTED=$(cat <<'EOF'
 "value1"
 "value2"
-EOF)
+EOF
+)
 
 OUTPUT=`echo "$INPUT" | ./jsed -m 'function(x) x.x'`
 if [ "$OUTPUT" = "$EXPECTED" ]; then
