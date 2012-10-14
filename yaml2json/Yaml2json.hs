@@ -8,12 +8,10 @@ import qualified Data.ByteString.Char8 as B (ByteString)
 
 main :: IO ()
 
-main = getContents >>= parseYaml >>= (putStr . convert )
+main = getContents >>= parseYaml >>=  putStr .  cr . encode . yamlNodeToJSValue
 
-
-convert :: YamlNode -> String
-convert x = encode(yamlNodeToJSValue(x)) ++ "\n"
-
+cr :: String -> String
+cr s = s ++ "\n"
 
 yamlNodeToJSValue :: YamlNode -> JSValue
 yamlNodeToJSValue n =
@@ -44,7 +42,6 @@ strFrom x = case n_elem x of
                  _        -> error "expected EStr node"
 
 type Buf = B.ByteString
-
 
 unpackBuf :: Buf -> String
 unpackBuf = decodeString . Data.Yaml.Syck.unpackBuf
