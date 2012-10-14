@@ -1,5 +1,5 @@
 name:           yaml2json
-version:        0.2
+version:        0.1
 synopsis:       StringTemplate for the command line with JSON models
 build-type:     Simple
 cabal-version:  >= 1.2
