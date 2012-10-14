@@ -7,4 +7,4 @@ cabal-version:  >= 1.2
 executable yaml2json
     main-is:        Yaml2json.hs
     build-depends:  base >4 && <5, containers, HStringTemplate, json, text, HsSyck, utf8-string, bytestring
-    ghc-options:    -Wall -fno-warn-orphans -fwarn-tabs
+    ghc-options:    -Werror -Wall -fno-warn-orphans -fwarn-tabs

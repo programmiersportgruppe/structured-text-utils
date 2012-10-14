@@ -1,23 +1,15 @@
 import Control.Applicative
 import qualified Data.Map as M
 import Data.Ratio
-import qualified Data.Text as T
-import System.Console.GetOpt
-import System.Environment
-import System.Exit
-import System.IO
 import Text.JSON
 import Text.StringTemplate
 import Data.Yaml.Syck hiding (unpackBuf, packBuf)
-import Codec.Binary.UTF8.String (encodeString, decodeString)
-import qualified Data.Yaml.Syck (unpackBuf, packBuf)
-import qualified Data.ByteString.Char8 as B (ByteString, readFile, filter)
+import Codec.Binary.UTF8.String (decodeString)
+import qualified Data.Yaml.Syck (unpackBuf)
+import qualified Data.ByteString.Char8 as B (ByteString)
 
 
 main :: IO ()
-
-identity :: String -> String
-identity x = x
 
 main = getContents >>= parseYaml >>= u
 
@@ -45,9 +37,6 @@ yamlNodeToJSValue n =
         EMap _  -> error "Map keys must all be strings."
         ESeq xs -> JSArray (map yamlNodeToJSValue xs)
         ENil    -> JSNull
-
-strip :: String -> String
-strip = T.unpack . T.strip . T.pack
 
 isStrNode :: YamlNode -> Bool
 isStrNode x = case n_elem x of
