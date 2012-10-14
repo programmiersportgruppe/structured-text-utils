@@ -1,0 +1,10 @@
+name:           yaml2json
+version:        0.2
+synopsis:       StringTemplate for the command line with JSON models
+build-type:     Simple
+cabal-version:  >= 1.2
+
+executable yaml2json
+    main-is:        Yaml2json.hs
+    build-depends:  base >4 && <5, containers, HStringTemplate, json, text, HsSyck, utf8-string, bytestring
+    ghc-options:    -Wall -fno-warn-orphans -fwarn-tabs
