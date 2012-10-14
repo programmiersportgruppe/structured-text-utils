@@ -17,7 +17,6 @@ flat-two-lines: |
 nested:
     a: aValue
     b: bValue
-
 END
 
 
@@ -26,12 +25,8 @@ END
 
 # THEN
 
-# NB: The expectation here is to see no output when boolean values are displayed.
-#     This is consistent with the behaviour of hStringTemplate, but seems contrary
-#     to the StringTemplate specification.
-#     Should we try to fix this to display JSON-style "true" or "false"?
 diff - output <<'END'
-{"flat-simple":"flat","flat-two-lines":"Line One\nLine Two","nested":{"a":"aValue","b":"bValue"}}
+{"flat-simple":"flat","flat-two-lines":"Line One\nLine Two\n","nested":{"a":"aValue","b":"bValue"}}
 END
 
 cd ..

@@ -22,7 +22,7 @@ identity x = x
 main = getContents >>= parseYaml >>= u
 
 u :: YamlNode -> IO()
-u x = putStr(convert(x))
+u x = putStr(convert(x) ++ "\n")
 
 convert :: YamlNode -> String
 convert x = encode(yamlNodeToJSValue(x))
@@ -43,7 +43,7 @@ yamlNodeToJSValue n =
                                                              Nothing -> (kstr, yamlNodeToJSValue v) : acc
                                                           where kstr = strFrom k
         EMap _  -> error "Map keys must all be strings."
-        ESeq xs -> JSString (toJSString "test") --NList $ map yamlNodeToNode xs
+        ESeq xs -> JSArray (map yamlNodeToJSValue xs)
         ENil    -> JSNull
 
 strip :: String -> String
