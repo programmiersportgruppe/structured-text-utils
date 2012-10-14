@@ -14,10 +14,15 @@ cd stpl
 ./build.sh
 cd ..
 
+cd yaml2json
+./build.sh
+cd ..
+
 pwd
 
 mkdir -p $ARCHIVE_NAME/bin
 cp jsed/jsed $ARCHIVE_NAME/bin
+cp yaml2json/dist/build/yaml2json/yaml2json $ARCHIVE_NAME/bin
 cp stpl/dist/build/stpl/stpl $ARCHIVE_NAME/bin
 
 cp README.md $ARCHIVE_NAME
