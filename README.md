@@ -25,6 +25,22 @@ yields:
 
 The javascript version used is 1.85, so we can use the nice expression syntax that is shown above.
 
+There is also a multi document mode that supports applying the function to multiple JSON documents that are
+rendered into single lines separated by newline characters:
+
+~~~~ .bash
+jsed -m 'function(x) x.firstName' << END
+{"firstName":"Bart","lastName":"Simpson"}
+{"firstName":"Lisa","lastName":"Simpson"}
+END
+~~~~
+
+will yield:
+
+~~~
+"Bart"
+"Lisa"
+~~~
 
 stpl
 ----
@@ -47,4 +63,29 @@ yields:
 ~~~
 Student: Bart Simpson
 Grades: F, F, F
+~~~
+
+
+yaml2json
+---------
+
+A utitility to convert YAML to JSON
+
+Example:
+
+~~~ .bash
+yaml2json <<END
+firstName: Bart
+lastName: Simplson
+grades:
+    - F
+    - F
+    - F
+END
+~~~
+
+will yield:
+
+~~~ .json
+{"firstName": "Bart", "lastName": "Simpson", "grades": ["F", "F", "F"]}
 ~~~
