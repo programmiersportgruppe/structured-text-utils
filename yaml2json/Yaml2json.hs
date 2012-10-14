@@ -1,8 +1,5 @@
 import Control.Applicative
-import qualified Data.Map as M
-import Data.Ratio
 import Text.JSON
-import Text.StringTemplate
 import Data.Yaml.Syck hiding (unpackBuf, packBuf)
 import Codec.Binary.UTF8.String (decodeString)
 import qualified Data.Yaml.Syck (unpackBuf)
@@ -11,13 +8,11 @@ import qualified Data.ByteString.Char8 as B (ByteString)
 
 main :: IO ()
 
-main = getContents >>= parseYaml >>= u
+main = getContents >>= parseYaml >>= (putStr . convert )
 
-u :: YamlNode -> IO()
-u x = putStr(convert(x) ++ "\n")
 
 convert :: YamlNode -> String
-convert x = encode(yamlNodeToJSValue(x))
+convert x = encode(yamlNodeToJSValue(x)) ++ "\n"
 
 
 yamlNodeToJSValue :: YamlNode -> JSValue
@@ -54,13 +49,3 @@ type Buf = B.ByteString
 unpackBuf :: Buf -> String
 unpackBuf = decodeString . Data.Yaml.Syck.unpackBuf
 
-
-instance ToSElem JSValue where
-    toSElem JSNull = toSElem (Nothing :: Maybe String)
-    toSElem (JSString s) = toSElem (fromJSString s)
-    toSElem (JSBool b) = toSElem b
-    toSElem (JSRational _ r)
-        | denominator r == 1 = toSElem (numerator r)
-        | otherwise          = toSElem (fromRational r :: Double)
-    toSElem (JSArray l) = toSElem l
-    toSElem (JSObject o) = toSElem . M.fromList $ fromJSObject o
