@@ -80,7 +80,9 @@ int main(int argc, const char *argv[])
         std::string input = readStdIn();
         std::string result = transformer(input);
         std::cout << result;
+
     }
+    std::cout << "\n";
     return 0;
 }
 
