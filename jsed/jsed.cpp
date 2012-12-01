@@ -40,7 +40,13 @@ std::string readStdIn() {
 }
 
 void usage() {
-    printf("Usage: jsed <script> | -f <scriptFile>\n");
+    printf("Usage: jsed [options] <script>\n");
+    printf("Options:\n");
+    printf("   -m, --multi-docs Expects input to be multiple documents\n");
+    printf("                    formatted on a single line and separated\n");
+    printf("                    by new lines\n");
+    printf("   -h, --help       Display help message\n");
+    printf("   -d, --debug      Print debug information\n");
 }
 
 class Line {
@@ -55,19 +61,43 @@ class Line {
     }
 };
 
+
+
 int main(int argc, const char *argv[])
 {
-    const char *script;
+    const char *script = NULL;
     bool multiple;
+    bool debug;
 
-    if (argc == 2) {
-        script=argv[1];
-    } else if (argc == 3 && argv[1] == string("-m")) {
-        multiple = true;
-        script=argv[2];
-    } else {
+    for (int i=1; i < argc; i++){
+        string next(argv[i]);
+        if (next == "-m" || next == "--multi-docs") {
+            multiple = true;
+            continue;
+        }
+
+        if (next == "-h" || next == "--help") {
+            usage();
+            return 0;
+        }
+
+        if (next == "-d" || next == "--debug") {
+            debug = true;
+            continue;
+        }
+
+        script = argv[i];
+    }
+
+    if (script == NULL) {
+        fprintf(stderr, "Missing script parameter\n");
         usage();
-        return -1;
+        return 1;
+    }
+
+    if (debug) {
+        fprintf(stderr, "Script:   '%s'\n", script);
+        fprintf(stderr, "Multiple: '%s'\n", multiple ? "true" : "false" );
     }
 
     JSInterpreter js;
