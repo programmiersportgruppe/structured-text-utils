@@ -89,3 +89,59 @@ will yield:
 ~~~ .json
 {"firstName": "Bart", "lastName": "Simpson", "grades": ["F", "F", "F"]}
 ~~~
+
+
+sqljson
+-------
+
+~~~~
+t
+x   y
+x1 y1
+x2 y2
+~~~~
+
+~~~
+select x,y from t
+~~~~
+
+Variant I
+~~~~
+[{"x": "x1", "y":"y1"},{"x":"x2", "y":"y2"}]
+~~~~
+
+Variant II
+~~~
+{"x": "x1", "y":"y1"}
+{"x":"x2", "y":"y2"}
+~~~
+
+### Joining
+
+~~~
+select  t1.x, t1.y, t2.z from t1 left join t2 on t1.y = t2.y
+~~~
+
+SQL result:
+~~~
+(x1 y1) z1
+x1 y1 z2
+x1 y1 z3
+x2 y2 z9
+x2 y2 z10
+~~~
+
+But what you want:
+
+~~~
+{ "x":"x1", "y":"y1", "t2":[ {"z":"z1"}, {"z":"z2"}, {"z","z3"}]}
+{ "x":"x2", "y":"y2", "t2":[ {"z":"z9"}, {"z":"z10"}]}
+~~~
+
+
+
+
+
+
+
+
