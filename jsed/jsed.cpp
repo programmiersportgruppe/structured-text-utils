@@ -1,6 +1,10 @@
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <streambuf>
 #include "js.cpp"
 #include "jsedjs.h"
 using namespace std;
@@ -43,8 +47,18 @@ std::string readStdIn() {
   return result;
 }
 
+std::string readFile(const char* filename){
+    std::ifstream t(filename);
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    return buffer.str();
+}
+
+
 void usage() {
-    printf("Usage: jsed [options] <script>\n");
+    printf("Usage: jsed [options] (transformation | -f file) \n");
+    printf("   transformation   Transformation function\n");
+    printf("   file             File containing transformation function\n");
     printf("Options:\n");
     printf("   -m, --multi-docs Expects input to be multiple documents\n");
     printf("                    formatted on a single line and separated\n");
@@ -71,7 +85,7 @@ class Line {
 
 int main(int argc, const char *argv[])
 {
-    const char *script = NULL;
+    std::string script = "";
     bool multiple = false;
     bool debug = false;
     bool raw = false;
@@ -104,17 +118,29 @@ int main(int argc, const char *argv[])
             continue;
         }
 
+        if (next == "-f") {
+            i++;
+            if (i==argc){
+                fprintf(stderr, "missing argument value for -f");
+                return 1;
+            }
+            script = readFile(argv[i]);
+            continue;
+
+
+        }
+
         script = argv[i];
     }
 
-    if (script == NULL) {
+    if (script == "") {
         fprintf(stderr, "Missing script parameter\n");
         usage();
         return 1;
     }
 
     if (debug) {
-        fprintf(stderr, "Script:   '%s'\n", script);
+        fprintf(stderr, "Script:   '%s'\n", script.c_str());
         fprintf(stderr, "Multiple: '%s'\n", multiple ? "true" : "false" );
         fprintf(stderr, "Raw:      '%s'\n", raw ? "true" : "false" );
         fprintf(stderr, "Pretty:   '%s'\n", pretty ? "true" : "false" );

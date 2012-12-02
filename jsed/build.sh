@@ -113,3 +113,26 @@ if [ "$OUTPUT" = "$EXPECTED" ]; then
 else
     echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
 fi
+
+# Test the transformation from file feature
+
+INPUT=$(cat <<'EOF'
+{}
+EOF
+)
+
+EXPECTED=$(cat <<'EOF'
+{
+    "name": "felix"
+}
+EOF
+)
+
+OUTPUT=`echo "$INPUT" | ./jsed --pretty -f test.js`
+
+if [ "$OUTPUT" = "$EXPECTED" ]; then
+    echo "TEST PASSED"
+else
+    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
+fi
+
