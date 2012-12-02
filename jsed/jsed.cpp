@@ -12,16 +12,18 @@ class Transformer {
     const JSInterpreter &interpreter;
     const Function transformationWrapper;
     const Function &transformation;
+    const bool rawMode;
 
     public:
-    Transformer(JSInterpreter &interpreter, Function &transformation) :
+    Transformer(JSInterpreter &interpreter, Function &transformation, bool rawMode ) :
         interpreter(interpreter),
         transformationWrapper(interpreter.evaluateScript(jsSource)),
-        transformation(transformation)
+        transformation(transformation),
+        rawMode(rawMode)
     {}
 
     std::string operator()(const std::string &jsonInput) const {
-        return transformationWrapper.invoke(jsonInput, transformation);
+        return transformationWrapper.invoke(jsonInput, transformation, rawMode);
     }
 };
 
@@ -66,8 +68,9 @@ class Line {
 int main(int argc, const char *argv[])
 {
     const char *script = NULL;
-    bool multiple;
-    bool debug;
+    bool multiple = false;
+    bool debug = false;
+    bool raw = false;
 
     for (int i=1; i < argc; i++){
         string next(argv[i]);
@@ -86,6 +89,11 @@ int main(int argc, const char *argv[])
             continue;
         }
 
+        if (next == "-r" || next == "--raw"){
+            raw = true;
+            continue;
+        }
+
         script = argv[i];
     }
 
@@ -98,11 +106,12 @@ int main(int argc, const char *argv[])
     if (debug) {
         fprintf(stderr, "Script:   '%s'\n", script);
         fprintf(stderr, "Multiple: '%s'\n", multiple ? "true" : "false" );
+        fprintf(stderr, "Raw:      '%s'\n", raw ? "true" : "false" );
     }
 
     JSInterpreter js;
     Function transformation = js.evaluateScript(script);
-    Transformer transformer(js, transformation);
+    Transformer transformer(js, transformation, raw);
 
     if (multiple) {
         std::transform(istream_iterator<Line>(cin), istream_iterator<Line>(), ostream_iterator<std::string>(cout, "\n"), transformer);

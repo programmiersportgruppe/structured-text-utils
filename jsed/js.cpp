@@ -37,7 +37,7 @@ class Function {
     public:
     Function(JSInterpreter&, jsval);
     operator jsval() const;
-    std::string invoke(std::string input, Function transformation) const;
+    std::string invoke(std::string input, Function transformation, bool raw) const;
 };
 
 class JSInterpreter {
@@ -96,10 +96,10 @@ class JSInterpreter {
         return Function(*this, rval);
     }
 
-    std::string invoke(const Function function, std::string input, Function transformation) {
+    std::string invoke(const Function function, std::string input, Function transformation, bool raw) {
         jsval r;
-        jsval args[] = { asJsValue(input), transformation };
-        JS_CallFunctionValue(cx, NULL, function, 2, args, &r);
+        jsval args[] = { asJsValue(input), transformation, raw ? JSVAL_TRUE : JSVAL_FALSE };
+        JS_CallFunctionValue(cx, NULL, function, 3, args, &r);
         return jsvalToString(r);
     }
 
@@ -137,7 +137,7 @@ Function::operator jsval() const {
     return jsFunction;
 }
 
-std::string Function::invoke(std::string input, Function transformation) const {
-    return interpreter.invoke(*this, input, transformation);
+std::string Function::invoke(std::string input, Function transformation, bool raw) const {
+    return interpreter.invoke(*this, input, transformation, raw);
 }
 

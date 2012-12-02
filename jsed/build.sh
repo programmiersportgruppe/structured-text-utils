@@ -63,9 +63,29 @@ OUTPUT=`echo "$INPUT" | ./jsed -m 'function(x) x.x'`
 if [ "$OUTPUT" = "$EXPECTED" ]; then
     echo "TEST PASSED"
 else
-    echo "TEST FAILED: Expected \"value\" but got $OUTPUT"
+    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
 fi
 
+# Test the raw output feature
 
 
+INPUT=$(cat <<'EOF'
+["Hello","brave","new","World"]
+EOF
+)
 
+EXPECTED=$(cat <<'EOF'
+Hello
+brave
+new
+World
+EOF
+)
+
+OUTPUT=`echo "$INPUT" | ./jsed --raw  'function(x) x.join("\\n")'`
+
+if [ "$OUTPUT" = "$EXPECTED" ]; then
+    echo "TEST PASSED"
+else
+    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
+fi
