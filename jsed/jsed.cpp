@@ -47,6 +47,7 @@ void usage() {
     printf("   -m, --multi-docs Expects input to be multiple documents\n");
     printf("                    formatted on a single line and separated\n");
     printf("                    by new lines\n");
+    printf("   -r, --raw        Produces raw string output\n");
     printf("   -h, --help       Display help message\n");
     printf("   -d, --debug      Print debug information\n");
 }
