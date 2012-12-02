@@ -89,3 +89,27 @@ if [ "$OUTPUT" = "$EXPECTED" ]; then
 else
     echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
 fi
+
+
+# Test the pretty output feature
+
+
+INPUT=$(cat <<'EOF'
+{"k":"v"}
+EOF
+)
+
+EXPECTED=$(cat <<'EOF'
+{
+    "k": "v"
+}
+EOF
+)
+
+OUTPUT=`echo "$INPUT" | ./jsed --pretty  'function(x) x'`
+
+if [ "$OUTPUT" = "$EXPECTED" ]; then
+    echo "TEST PASSED"
+else
+    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
+fi

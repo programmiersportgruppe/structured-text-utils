@@ -13,17 +13,19 @@ class Transformer {
     const Function transformationWrapper;
     const Function &transformation;
     const bool rawMode;
+    const bool pretty;
 
     public:
-    Transformer(JSInterpreter &interpreter, Function &transformation, bool rawMode ) :
+    Transformer(JSInterpreter &interpreter, Function &transformation, bool rawMode, bool pretty) :
         interpreter(interpreter),
         transformationWrapper(interpreter.evaluateScript(jsSource)),
         transformation(transformation),
-        rawMode(rawMode)
+        rawMode(rawMode),
+        pretty(pretty)
     {}
 
     std::string operator()(const std::string &jsonInput) const {
-        return transformationWrapper.invoke(jsonInput, transformation, rawMode);
+        return transformationWrapper.invoke(jsonInput, transformation, rawMode, pretty);
     }
 };
 
@@ -48,6 +50,7 @@ void usage() {
     printf("                    formatted on a single line and separated\n");
     printf("                    by new lines\n");
     printf("   -r, --raw        Produces raw string output\n");
+    printf("   -p, --pretty     Pretty print json output\n");
     printf("   -h, --help       Display help message\n");
     printf("   -d, --debug      Print debug information\n");
 }
@@ -72,6 +75,7 @@ int main(int argc, const char *argv[])
     bool multiple = false;
     bool debug = false;
     bool raw = false;
+    bool pretty = false;
 
     for (int i=1; i < argc; i++){
         string next(argv[i]);
@@ -95,6 +99,11 @@ int main(int argc, const char *argv[])
             continue;
         }
 
+        if (next == "-p" || next == "--pretty"){
+            pretty = true;
+            continue;
+        }
+
         script = argv[i];
     }
 
@@ -108,11 +117,12 @@ int main(int argc, const char *argv[])
         fprintf(stderr, "Script:   '%s'\n", script);
         fprintf(stderr, "Multiple: '%s'\n", multiple ? "true" : "false" );
         fprintf(stderr, "Raw:      '%s'\n", raw ? "true" : "false" );
+        fprintf(stderr, "Pretty:   '%s'\n", pretty ? "true" : "false" );
     }
 
     JSInterpreter js;
     Function transformation = js.evaluateScript(script);
-    Transformer transformer(js, transformation, raw);
+    Transformer transformer(js, transformation, raw, pretty);
 
     if (multiple) {
         std::transform(istream_iterator<Line>(cin), istream_iterator<Line>(), ostream_iterator<std::string>(cout, "\n"), transformer);
