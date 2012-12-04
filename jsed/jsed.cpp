@@ -33,18 +33,10 @@ class Transformer {
     }
 };
 
-/* Yes, I am suitably embarressed, needs fixing */
 std::string readStdIn() {
-  string result("");
-  string lf("\n");
-  while(cin) {
-    string input_line("");
-    getline(cin, input_line);
-    result+= input_line;
-    result+=lf;
-  };
-
-  return result;
+    std::stringstream buffer;
+    buffer << cin.rdbuf();
+    return buffer.str();
 }
 
 std::string readFile(const char* filename){
