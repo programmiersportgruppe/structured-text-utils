@@ -97,27 +97,22 @@ int main(int argc, const char *argv[])
             multiple = true;
             continue;
         }
-
         if (next == "-h" || next == "--help") {
             usage();
             return 0;
         }
-
         if (next == "-d" || next == "--debug") {
             debug = true;
             continue;
         }
-
         if (next == "-r" || next == "--raw"){
             raw = true;
             continue;
         }
-
         if (next == "-p" || next == "--pretty"){
             pretty = true;
             continue;
         }
-
         if (next == "-f") {
             i++;
             if (i==argc){
@@ -126,11 +121,8 @@ int main(int argc, const char *argv[])
             }
             script = readFile(argv[i]);
             continue;
-
-
         }
-
-        script = argv[i];
+        script = next;
     }
 
     if (script == "") {
