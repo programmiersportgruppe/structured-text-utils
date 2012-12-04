@@ -51,7 +51,7 @@ class JSInterpreter {
         /* Create a JS runtime. You always need at least one runtime per process. */
         rt = JS_NewRuntime(8 * 1024 * 1024);
         if (rt == NULL)
-            throw "can't create runtime";
+            throw * new std::runtime_error("Can't create JS runtime");
 
         /*
          * Create a context. You always need a context per thread.
@@ -59,7 +59,7 @@ class JSInterpreter {
          */
         cx = JS_NewContext(rt, 8192);
         if (cx == NULL)
-            throw "can't create runtime";
+            throw * new std::runtime_error("Can't create js context");
 
         JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_JIT | JSOPTION_METHODJIT);
         JS_SetVersion(cx, JSVERSION_LATEST);
@@ -71,14 +71,14 @@ class JSInterpreter {
          */
         global = JS_NewCompartmentAndGlobalObject(cx, &global_class, NULL);
         if (global == NULL)
-            throw "can't create runtime";
+            throw * new std::runtime_error("Can't create global object.");
 
         /*
          * Populate the global object with the standard JavaScript
          * function and object classes, such as Object, Array, Date.
          */
         if (!JS_InitStandardClasses(cx, global))
-            throw "can't create runtime";
+            throw * new std::runtime_error("Can't initialsise standard classes");
     }
 
     Function evaluateScript(std::string script){
@@ -89,8 +89,8 @@ class JSInterpreter {
         uintN lineno = 0;
         ok = JS_EvaluateScript(cx, global, script.c_str(), script.length(),
                                filename, lineno, &rval);
-        if (rval == JSVAL_NULL || rval == JS_FALSE){
-            throw "Could not evaluate script";
+        if (rval == JSVAL_NULL || rval == JS_FALSE || ok == JS_FALSE){
+            throw * new std::runtime_error("Could not evaluate script");
         }
 
         return Function(*this, rval);
