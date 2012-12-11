@@ -1,3 +1,24 @@
+Object.prototype.map = function(mapping) {
+    var ret = {};
+    for (var property in this) {
+        if (this.hasOwnProperty(property)) {
+            ret[property] = mapping(this[property]);
+        }
+    }
+    return ret;
+};
+
+Object.prototype.filter = function(predicate) {
+    var ret = {};
+    for (var property in this) {
+        if (this.hasOwnProperty(property) && predicate(property, this[property]) ) {
+            ret[property] = this[property];
+        }
+    }
+    return ret;
+};
+
+
 function(input, transformation, raw, pretty){
 
     var inputJson = JSON.parse(input)

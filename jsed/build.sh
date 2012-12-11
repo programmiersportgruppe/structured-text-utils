@@ -20,14 +20,29 @@ else
     g++ jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
 fi
 
+function assertEq() {
+    ASSERTION_DESC=$1
+    EXPECTED_OUTPUT=$2
+    ACTUAL_OUTPUT=$3
+
+    red='\033[31m'
+    green='\033[32m'
+    reset='\033[0m'
+
+    if [ "$EXPECTED_OUTPUT" = "$ACTUAL_OUTPUT" ]; then
+        echo -e "${green}PASSED${reset} $ASSERTION_DESC"
+    else
+        echo -e "${red}FAILED${reset} $ASSERTION_DESC : Expected $EXPECTED_OUTPUT but got $ACTUAL_OUTPUT"
+    fi
+}
+
+
 #Test should be able to transform json document that comes on a single line.
 INPUT='{"x":"value"}'
 OUTPUT=`echo $INPUT | ./jsed 'function(x) x.x'`
-if [ "$OUTPUT" = '"value"' ]; then
-    echo "TEST PASSED"
-else
-    echo "TEST FAILED: Expected \"value\" but got $OUTPUT"
-fi
+
+assertEq "transform single line json" \
+         '"value"' "$OUTPUT"
 
 #Test should be able to transform a "pretty" json document.
 
@@ -39,13 +54,9 @@ EOF
 )
 
 OUTPUT=`echo $INPUT | ./jsed 'function(x) x.x'`
-if [ "$OUTPUT" = '"value"' ]; then
-    echo "TEST PASSED"
-else
-    echo "TEST FAILED: Expected \"value\" but got $OUTPUT"
-fi
+assertEq "transform 'pretty' json document" \
+         '"value"' $OUTPUT
 
-#Test should deal with newline separated json documents in multi document mode
 
 INPUT=$(cat <<'EOF'
 { "x":"value1" }
@@ -60,13 +71,11 @@ EOF
 )
 
 OUTPUT=`echo "$INPUT" | ./jsed -m 'function(x) x.x'`
-if [ "$OUTPUT" = "$EXPECTED" ]; then
-    echo "TEST PASSED"
-else
-    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
-fi
 
-# Test the raw output feature
+assertEq "transform multiple, newline separated json documents" \
+         "$EXPECTED" "$OUTPUT"
+
+
 
 
 INPUT=$(cat <<'EOF'
@@ -84,11 +93,8 @@ EOF
 
 OUTPUT=`echo "$INPUT" | ./jsed --raw  'function(x) x.join("\\n")'`
 
-if [ "$OUTPUT" = "$EXPECTED" ]; then
-    echo "TEST PASSED"
-else
-    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
-fi
+assertEq "transform using the raw output feature" \
+         "$EXPECTED" "$OUTPUT"
 
 
 # Test the pretty output feature
@@ -108,11 +114,10 @@ EOF
 
 OUTPUT=`echo "$INPUT" | ./jsed --pretty  'function(x) x'`
 
-if [ "$OUTPUT" = "$EXPECTED" ]; then
-    echo "TEST PASSED"
-else
-    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
-fi
+assertEq "produce pretty output" \
+         "$EXPECTED" "$OUTPUT"
+
+
 
 # Test the transformation from file feature
 
@@ -130,9 +135,67 @@ EOF
 
 OUTPUT=`echo "$INPUT" | ./jsed --pretty -f test.js`
 
-if [ "$OUTPUT" = "$EXPECTED" ]; then
-    echo "TEST PASSED"
-else
-    echo "TEST FAILED: Expected \"$EXPECTED\" but got $OUTPUT"
-fi
+assertEq "transformation from file" \
+         "$EXPECTED" "$OUTPUT"
+
+
+# Map object
+
+INPUT=$(cat <<'EOF'
+{ "name": "felix", "occupation": "developer"}
+EOF
+)
+
+EXPECTED=$(cat <<'EOF'
+{
+    "name": "FELIX",
+    "occupation": "DEVELOPER"
+}
+EOF
+)
+
+OUTPUT=`echo "$INPUT" | ./jsed --pretty 'function(x) x.map(function(e) e.toUpperCase())'`
+
+assertEq "support mapping of object properties" \
+         "$EXPECTED" "$OUTPUT"
+
+
+# Filter object by key
+
+INPUT=$(cat <<'EOF'
+{ "name": "felix", "occupation": "developer"}
+EOF
+)
+
+EXPECTED=$(cat <<'EOF'
+{
+    "name": "felix"
+}
+EOF
+)
+
+OUTPUT=`echo "$INPUT" | ./jsed --pretty 'function(x) x.filter(function(k) k === "name")'`
+
+assertEq "support filtering of object properties by key" \
+         "$EXPECTED" "$OUTPUT"
+
+# filter object by value
+
+INPUT=$(cat <<'EOF'
+{ "name": "felix", "occupation": "developer"}
+EOF
+)
+
+EXPECTED=$(cat <<'EOF'
+{
+    "name": "felix"
+}
+EOF
+)
+
+OUTPUT=`echo "$INPUT" | ./jsed --pretty 'function(x) x.filter(function(k, v) v === "felix")'`
+
+assertEq "support filtering of object properties by value" \
+         "$EXPECTED" "$OUTPUT"
+
 
