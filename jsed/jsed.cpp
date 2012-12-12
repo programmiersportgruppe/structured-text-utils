@@ -40,11 +40,19 @@ std::string readStdIn() {
     return buffer.str();
 }
 
-std::string readFile(const char* filename){
+std::string readFile(const char* filename) throw (runtime_error) {
     std::ifstream t(filename);
+    if (!t) {
+        throw * new runtime_error(std::string("Could not open input file '") + filename  + "'");
+    }
     std::stringstream buffer;
     buffer << t.rdbuf();
     return buffer.str();
+}
+
+void writeFile(std::string filename, std::string content) {
+    std::ofstream outputStream(filename.c_str());
+    outputStream << content;
 }
 
 class OptionParser {
@@ -56,6 +64,7 @@ class OptionParser {
     bool debug;
     bool raw;
     bool pretty;
+    std::string inPlaceFile;
 
     OptionParser(int argc, const char *argv[]) throw (runtime_error) {
         for (int i=1; i < argc; i++){
@@ -73,20 +82,28 @@ class OptionParser {
                 debug = true;
                 continue;
             }
-            if (next == "-r" || next == "--raw"){
+            if (next == "-r" || next == "--raw") {
                 raw = true;
                 continue;
             }
-            if (next == "-p" || next == "--pretty"){
+            if (next == "-p" || next == "--pretty") {
                 pretty = true;
                 continue;
             }
             if (next == "-f") {
                 i++;
-                if (i==argc){
+                if (i==argc) {
                     throw * new runtime_error("Missing argument value for -f");
                 }
                 script = readFile(argv[i]);
+                continue;
+            }
+            if (next == "-i" || next == "--in-place") {
+                i++;
+                if (i==argc) {
+                    throw * new runtime_error("Missing filename argument for in place editing");
+                }
+                inPlaceFile = argv[i];
                 continue;
             }
             script = next;
@@ -96,16 +113,21 @@ class OptionParser {
             fprintf(stderr, "Script:   '%s'\n", script.c_str());
             fprintf(stderr, "Multiple: '%s'\n", multiple ? "true" : "false" );
             fprintf(stderr, "Raw:      '%s'\n", raw ? "true" : "false" );
+            fprintf(stderr, "Inplace:  '%s'\n", inPlaceFile.c_str());
             fprintf(stderr, "Pretty:   '%s'\n", pretty ? "true" : "false" );
         }
 
         if (script == "" && !showHelp) {
             throw  * new runtime_error("Missing transformation function");
         }
+
+        if (multiple && inPlaceFile != "") {
+            throw  * new runtime_error("Multi document mode and in place editing of files are mutually exclusive");
+        }
     }
 
     void usage() {
-        printf("Usage: jsed [options] (transformation | -f file) \n");
+        printf("Usage: jsed [options] [--in-place filename] (transformation | -f file) \n");
         printf("   transformation   Transformation function\n");
         printf("   file             File containing transformation function\n");
         printf("Options:\n");
@@ -146,11 +168,17 @@ int main(int argc, const char *argv[])
         if (parser.multiple) {
             std::transform(istream_iterator<Line>(cin), istream_iterator<Line>(), ostream_iterator<std::string>(cout, "\n"), transformer);
         } else {
-            std::string input = readStdIn();
-            std::string result = transformer(input);
-            std::cout << result;
+            if (parser.inPlaceFile != "") {
+                std::string input = readFile(parser.inPlaceFile.c_str());
+                std::string result = transformer(input);
+                writeFile(parser.inPlaceFile.c_str(), result);
+            } else {
+                std::string input = readStdIn();
+                std::string result = transformer(input);
+                std::cout << result;
+                std::cout << "\n";
+            }
         }
-        std::cout << "\n";
 
     }
     catch(runtime_error& ex) {

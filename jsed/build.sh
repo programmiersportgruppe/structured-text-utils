@@ -198,4 +198,26 @@ OUTPUT=`echo "$INPUT" | ./jsed --pretty 'function(x) x.filter(function(k, v) v =
 assertEq "support filtering of object properties by value" \
          "$EXPECTED" "$OUTPUT"
 
+# Inplace editing
+
+$(cat >tmp.json<<'EOF'
+{ "name": "felix", "occupation": "developer"}
+EOF
+)
+
+EXPECTED=$(cat <<'EOF'
+{
+    "name": "felix"
+}
+EOF
+)
+
+./jsed --in-place tmp.json --pretty 'function(x) x.filter(function(k, v) v === "felix")'
+
+OUTPUT=`cat tmp.json`
+
+assertEq "support in place editing" \
+         "$EXPECTED" "$OUTPUT"
+
+
 
