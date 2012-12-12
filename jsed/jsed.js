@@ -2,7 +2,7 @@ Object.prototype.map = function(mapping) {
     var ret = {};
     for (var property in this) {
         if (this.hasOwnProperty(property)) {
-            ret[property] = mapping(this[property]);
+            ret[property] = mapping(property, this[property]);
         }
     }
     return ret;

@@ -154,7 +154,7 @@ EXPECTED=$(cat <<'EOF'
 EOF
 )
 
-OUTPUT=`echo "$INPUT" | ./jsed --pretty 'function(x) x.map(function(e) e.toUpperCase())'`
+OUTPUT=`echo "$INPUT" | ./jsed --pretty 'function(x) x.map(function(k, v) v.toUpperCase())'`
 
 assertEq "support mapping of object properties" \
          "$EXPECTED" "$OUTPUT"
