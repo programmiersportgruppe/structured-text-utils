@@ -18,7 +18,9 @@ using namespace std;
  *
  * TODO
  *  - Return exit code in exception
- *  - Add timeout functionality (nasty)
+ *  - Add timeout functionality
+ *       this seems to be nasty according to:
+ *       http://stackoverflow.com/questions/282176/waitpid-equivalent-with-timeout
  */
 
 std::string filter(std::string input, std::string command, std::vector<std::string> args) {//char* command, char** args, istream input, ostream output){
@@ -62,7 +64,7 @@ std::string filter(std::string input, std::string command, std::vector<std::stri
         c_args[args.size() + 1] = NULL;
 
         int retVal = execvp(command.c_str(), c_args);
-        exit (0); //this not needed, after calling execve...
+        exit (0); //this not needed, after calling execve we won't return, will we?
     }
 
     boost::fdistream out(Output[0]);
@@ -86,6 +88,7 @@ std::string filter(std::string input, std::string command, std::vector<std::stri
     return output;
 }
 
+// test function for our filter function
 int main(int argc, const char *argv[]){
     std::vector<std::string> args;
 
@@ -93,8 +96,13 @@ int main(int argc, const char *argv[]){
 
         args.push_back(argv[i]);
     }
-
-    std::string output = filter("hello world\nwhat is going on\nhello hello?", argv[1], args);
-    printf("output:\n%s", output.c_str());
+    try {
+        std::string output = filter("hello world\nwhat is going on\nhello hello?", argv[1], args);
+        printf(output.c_str());
+    }
+    catch(runtime_error& ex) {
+        cerr << ex.what() ;
+        return 1;
+    }
     return 0;
 }
