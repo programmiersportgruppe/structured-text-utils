@@ -6,7 +6,6 @@
 #include <iterator>
 #include <algorithm>
 #include <vector>
-
 #include "fdstream.hpp"
 #include <stdexcept>
 
@@ -88,21 +87,3 @@ std::string filter(std::string input, std::string command, std::vector<std::stri
     return output;
 }
 
-// test function for our filter function
-int main(int argc, const char *argv[]){
-    std::vector<std::string> args;
-
-    for (int i=2; i<argc;i++){
-
-        args.push_back(argv[i]);
-    }
-    try {
-        std::string output = filter("hello world\nwhat is going on\nhello hello?", argv[1], args);
-        printf(output.c_str());
-    }
-    catch(runtime_error& ex) {
-        cerr << ex.what() ;
-        return 1;
-    }
-    return 0;
-}
