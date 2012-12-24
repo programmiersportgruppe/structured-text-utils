@@ -20,7 +20,7 @@ int main(int argc, const char *argv[]){
         std::string input = buffer.str();
 
         std::string output = filter(input, argv[1], args);
-        printf(output.c_str());
+        printf("%s", output.c_str());
     }
     catch(std::runtime_error& ex) {
         std::cerr << ex.what() ;
