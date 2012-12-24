@@ -1,5 +1,10 @@
 #/usr/bin/env bash
 
+echo Cleaning
+
+rm -f filter.o
+rm -f tester
+
 echo Compiling
 set -e
 g++ -c filter.cpp
@@ -30,7 +35,7 @@ exitStatus=$?
 assertEq "input is passed through to output"  "hello" "$x"
 assertEq "exit status is set to 0 on success" "0" "$exitStatus"
 
-x=$(echo hello | ./tester ls iamnotafile)
+x=$(echo hello | ./tester ls iamnotafile 2>&1)
 exitStatus=$?
 assertEq "exit status is set to 1 on failure" "1" "$exitStatus"
 

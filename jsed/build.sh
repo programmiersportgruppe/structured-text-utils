@@ -2,14 +2,32 @@
 # Compiling and testing jsed
 set -e
 
-echo Building jsed
-
+echo "Building jsed"
+echo "============="
 PREFIX=/usr/local
 STATIC_PREFIX=deps/js-1.8.5/js/src/dist
 
+# cleanup
+
 rm -f jsed
 rm -f jsedjs.h
+echo ""
+echo "Building filter module"
+echo "----------------------"
 
+set +e
+(cd filter && ./build.sh && cd ..)
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to build filter module" >&2
+  exit 1
+fi
+set -e
+echo
+
+
+echo Compiling jsed
+echo "--------------"
 # Generate jsedjs.h
 ./convert-js-to-header.rb <jsed.js >jsedjs.h
 
@@ -19,6 +37,8 @@ then
 else
     g++ jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
 fi
+
+echo Testing
 
 function assertEq() {
     ASSERTION_DESC=$1
@@ -218,6 +238,3 @@ OUTPUT=`cat tmp.json`
 
 assertEq "support in place editing" \
          "$EXPECTED" "$OUTPUT"
-
-
-
