@@ -40,6 +40,14 @@ class Function {
     std::string invoke(std::string input, Function transformation, bool raw, bool pretty) const;
 };
 
+
+JSBool justForFun(JSContext *cx, uintN argc, jsval *vp)
+{
+    printf("Hello from C\n");
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
 class JSInterpreter {
     JSRuntime *rt;
     JSContext *cx;
@@ -80,6 +88,8 @@ class JSInterpreter {
         if (!JS_InitStandardClasses(cx, global))
             throw * new std::runtime_error("Can't initialise standard classes.");
 
+        if (!JS_DefineFunction(cx, global, "justForFun", &justForFun, 0, 0))
+            throw * new std::runtime_error("Can't define function.");
 
     }
 
