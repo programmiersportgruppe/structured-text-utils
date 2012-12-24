@@ -51,7 +51,7 @@ class JSInterpreter {
         /* Create a JS runtime. You always need at least one runtime per process. */
         rt = JS_NewRuntime(8 * 1024 * 1024);
         if (rt == NULL)
-            throw * new std::runtime_error("Can't create JS runtime");
+            throw * new std::runtime_error("Can't create JS runtime.");
 
         /*
          * Create a context. You always need a context per thread.
@@ -59,7 +59,7 @@ class JSInterpreter {
          */
         cx = JS_NewContext(rt, 8192);
         if (cx == NULL)
-            throw * new std::runtime_error("Can't create js context");
+            throw * new std::runtime_error("Can't create js context.");
 
         JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_JIT | JSOPTION_METHODJIT);
         JS_SetVersion(cx, JSVERSION_LATEST);
@@ -78,7 +78,9 @@ class JSInterpreter {
          * function and object classes, such as Object, Array, Date.
          */
         if (!JS_InitStandardClasses(cx, global))
-            throw * new std::runtime_error("Can't initialsise standard classes");
+            throw * new std::runtime_error("Can't initialise standard classes.");
+
+
     }
 
     Function evaluateScript(std::string script){
