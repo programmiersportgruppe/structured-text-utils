@@ -1,14 +1,8 @@
-/*
- * This define is for Windows only, it is a work-around for bug 661663.
- */
-#ifdef _MSC_VER
-# define XP_WIN
-#endif
-
-/* Include the JSAPI header file to get access to SpiderMonkey. */
 #include "jsapi.h"
-#include "filter/filter.h"
-
+#include "js.h"
+#include <string>
+#include <vector>
+#include <stdexcept>
 
 /* The class of the global object. */
 static JSClass global_class = {
@@ -27,6 +21,7 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
             message);
 }
 
+
 class ContextWrapper {
     JSContext *cx;
 
@@ -35,20 +30,22 @@ class ContextWrapper {
         cx(cx)
     {}
 
+    char *jsvalToString(const jsval val) const {
+        JSString *str;
+        str = JS_ValueToString(cx, val);
+        return JS_EncodeString(cx, str);
+    }
+
+    jsval asJsValue(const std::string value) const {
+        JSString *intermediateForm = JS_NewStringCopyN(cx, value.c_str(), value.length());
+        return STRING_TO_JSVAL(intermediateForm);
+    }
+
+    jsval fromBool(bool b){
+        return b ? JSVAL_TRUE : JSVAL_FALSE;
+    }
 };
 
-class JSInterpreter;
-
-class Function {
-    private:
-    JSInterpreter& interpreter;
-    jsval jsFunction;
-
-    public:
-    Function(JSInterpreter&, jsval);
-    operator jsval() const;
-    std::string invoke(std::string input, Function transformation, bool raw, bool pretty) const;
-};
 
 JSBool _native_filter(JSContext *cx, uintN argc, jsval *vp)
 {
@@ -92,7 +89,7 @@ JSBool _native_filter(JSContext *cx, uintN argc, jsval *vp)
     printf("echo '%s' | %s\n", input.c_str(), command.c_str());
 
 
-    std::string output = filter(input, command, args);
+    std::string output = "output";//filter(input, command, args);
     //try catch to handle error
     JSString *intermediateForm = JS_NewStringCopyN(cx, output.c_str(), output.length());
     JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(intermediateForm));
@@ -100,15 +97,8 @@ JSBool _native_filter(JSContext *cx, uintN argc, jsval *vp)
     return JS_TRUE;
 }
 
-class JSInterpreter {
-    JSRuntime *rt;
-    JSContext *cx;
-    JSObject  *global;
-    ContextWrapper *contextWrapper;
 
-    public:
-
-    JSInterpreter() {
+JSInterpreter::JSInterpreter() {
         /* Create a JS runtime. You always need at least one runtime per process. */
         rt = JS_NewRuntime(8 * 1024 * 1024);
         if (rt == NULL)
@@ -144,63 +134,38 @@ class JSInterpreter {
         if (!JS_DefineFunction(cx, global, "_native_filter", &_native_filter, 3, 0))
             throw * new std::runtime_error("Can't define function.");
 
-        contextWrapper = new ContextWrapper(cx);
+        cw = new ContextWrapper(cx);
 
     }
 
-    Function evaluateScript(std::string script){
-        jsval rval;
-        JSBool ok;
-        const char *filename = "noname";
+Function JSInterpreter::evaluateScript(std::string script){
+    jsval rval;
+    JSBool ok;
+    const char *filename = "noname";
 
-        uintN lineno = 0;
-        ok = JS_EvaluateScript(cx, global, script.c_str(), script.length(),
-                               filename, lineno, &rval);
-        if (rval == JSVAL_NULL || rval == JS_FALSE || ok == JS_FALSE){
-            throw * new std::runtime_error("Could not evaluate script");
-        }
-
-        return Function(*this, rval);
+    uintN lineno = 0;
+    ok = JS_EvaluateScript(cx, global, script.c_str(), script.length(),
+                           filename, lineno, &rval);
+    if (rval == JSVAL_NULL || rval == JS_FALSE || ok == JS_FALSE){
+        throw * new std::runtime_error("Could not evaluate script");
     }
 
+    return Function(*this, rval);
+}
 
+std::string JSInterpreter::invoke(const Function function, std::string input, Function transformation, bool raw, bool pretty) {
+    jsval r;
+    jsval args[] = { cw->asJsValue(input), transformation, cw->fromBool(raw), cw->fromBool(pretty)};
+    JS_CallFunctionValue(cx, NULL, function, 4, args, &r);
+    return cw->jsvalToString(r);
+}
 
-    std::string invoke(const Function function, std::string input, Function transformation, bool raw, bool pretty) {
-        jsval r;
-        jsval args[] = { asJsValue(input), transformation, fromBool(raw), fromBool(pretty)};
-        JS_CallFunctionValue(cx, NULL, function, 4, args, &r);
-        return jsvalToString(r);
-    }
-
-    ~JSInterpreter() {
-        /* Clean things up and shut down SpiderMonkey. */
-        JS_DestroyContext(cx);
-        JS_DestroyRuntime(rt);
-        JS_ShutDown();
-    }
-
-    private:
-
-    JSInterpreter(const JSInterpreter& that);
-
-    char *jsvalToString(const jsval val) const {
-        JSString *str;
-        str = JS_ValueToString(cx, val);
-        return JS_EncodeString(cx, str);
-    }
-
-    jsval asJsValue(const std::string value) const {
-        JSString *intermediateForm = JS_NewStringCopyN(cx, value.c_str(), value.length());
-        return STRING_TO_JSVAL(intermediateForm);
-    }
-
-    jsval fromBool(bool b){
-        return b ? JSVAL_TRUE : JSVAL_FALSE;
-    }
-
-
-};
-
+JSInterpreter::~JSInterpreter() {
+    /* Clean things up and shut down SpiderMonkey. */
+    JS_DestroyContext(cx);
+    JS_DestroyRuntime(rt);
+    JS_ShutDown();
+}
 
 Function::Function(JSInterpreter &interpreter, jsval jsFunction):
     interpreter(interpreter),
