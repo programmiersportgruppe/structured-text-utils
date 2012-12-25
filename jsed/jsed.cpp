@@ -7,7 +7,7 @@
 #include <streambuf>
 #include <exception>
 #include <stdexcept>
-#include "js.cpp"
+#include "js/js.h"
 #include "jsedjs.h"
 using namespace std;
 

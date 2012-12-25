@@ -25,6 +25,21 @@ fi
 set -e
 echo
 
+echo ""
+echo "Building js wrapper module"
+echo "--------------------------"
+
+set +e
+(cd js && ./build.sh "$*" && cd ..)
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to build js wrapper module" >&2
+  exit 1
+fi
+set -e
+echo
+
+
 
 echo Compiling jsed
 echo "--------------"
@@ -33,9 +48,9 @@ echo "--------------"
 
 if [ "$*" = "--static" ]
 then
-    g++ filter/filter.o jsed.cpp -o jsed -I$STATIC_PREFIX/include -Wl,$STATIC_PREFIX/lib/libjs_static.a
+    g++ filter/filter.o js/js.o jsed.cpp  -I$STATIC_PREFIX/include -o jsed -Wl,$STATIC_PREFIX/lib/libjs_static.a
 else
-    g++ filter/filter.o jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
+    g++ filter/filter.o js/js.o jsed.cpp -o jsed -I$PREFIX/include/js -L$PREFIX/lib -lmozjs185
 fi
 
 echo Testing
