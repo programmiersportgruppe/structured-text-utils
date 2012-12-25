@@ -164,9 +164,6 @@ class JSInterpreter {
     }
 
 
-    jsval fromBool(bool b){
-        return b ? JSVAL_TRUE : JSVAL_FALSE;
-    }
 
     std::string invoke(const Function function, std::string input, Function transformation, bool raw, bool pretty) {
         jsval r;
@@ -196,6 +193,11 @@ class JSInterpreter {
         JSString *intermediateForm = JS_NewStringCopyN(cx, value.c_str(), value.length());
         return STRING_TO_JSVAL(intermediateForm);
     }
+
+    jsval fromBool(bool b){
+        return b ? JSVAL_TRUE : JSVAL_FALSE;
+    }
+
 
 };
 
