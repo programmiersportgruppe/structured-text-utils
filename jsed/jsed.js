@@ -1,5 +1,3 @@
-filterWrapper.apply(["hello", "say"]);
-
 Object.prototype.map = function(mapping) {
     var ret = {};
     for (var property in this) {
@@ -21,7 +19,19 @@ Object.prototype.filter = function(predicate) {
 };
 
 String.prototype.pipe = function(command, args){
-    return filterWrapper.apply([this, command].concat(args));
+    return filterWrapper(this, command, args);
+}
+
+
+function toString(x) {
+    return x.toString();
+}
+
+/** Wraps the native function and does validation */
+function filterWrapper(input, command, args){
+    //todo: do some guarding here (signature string, string, array<string>))
+    //
+    return _native_filter(input, command, ["x"]);
 }
 
 
