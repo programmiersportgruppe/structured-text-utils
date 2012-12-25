@@ -14,14 +14,14 @@ using namespace std;
 class Transformer {
 
     private:
-    const JSInterpreter &interpreter;
-    const Function transformationWrapper;
-    const Function &transformation;
+    JSInterpreter &interpreter;
+    const js::Function transformationWrapper;
+    const js::Function transformation;
     const bool rawMode;
     const bool pretty;
 
     public:
-    Transformer(JSInterpreter &interpreter, Function &transformation, bool rawMode, bool pretty) :
+    Transformer(JSInterpreter &interpreter, js::Function transformation, bool rawMode, bool pretty) :
         interpreter(interpreter),
         transformationWrapper(interpreter.evaluateScript(jsSource)),
         transformation(transformation),
@@ -29,8 +29,18 @@ class Transformer {
         pretty(pretty)
     {}
 
+
     std::string operator()(const std::string &jsonInput) const {
-        return transformationWrapper.invoke(jsonInput, transformation, rawMode, pretty);
+        // this is a bit awkward, but once we have switched to C++11 we can instead write:
+        // -std=c++11
+        // return interpreter.invoke(transformationWrapper, {jsonInput, (js::ValueRef)transformation, rawMode, pretty});
+
+        std::vector<js::ValueRef> args;
+        args.push_back(jsonInput);
+        args.push_back(transformation);
+        args.push_back(rawMode);
+        args.push_back(pretty);
+        return interpreter.invoke(transformationWrapper, args);
     }
 };
 
@@ -162,7 +172,7 @@ int main(int argc, const char *argv[])
             return 0;
 
         JSInterpreter js;
-        Function transformation = js.evaluateScript(parser.script);
+        js::Function transformation = js.evaluateScript(parser.script);
         Transformer transformer(js, transformation, parser.raw, parser.pretty);
 
         if (parser.multiple) {

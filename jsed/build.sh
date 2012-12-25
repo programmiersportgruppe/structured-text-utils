@@ -7,6 +7,16 @@ echo "============="
 PREFIX=/usr/local
 STATIC_PREFIX=deps/js-1.8.5/js/src/dist
 
+# To support c++11 uncomment the following lines
+#CPP=${CPP:-g++-mp-4.7}
+#CPP_FLAGS=${CPP_FLAGS:--std=c++11}
+
+CPP=${CPP:-g++}
+CPP_FLAGS=${CPP_FLAGS:-}
+
+export CPP_FLAGS
+export CPP
+
 # cleanup
 
 rm -f jsed
@@ -46,11 +56,12 @@ echo "--------------"
 # Generate jsedjs.h
 ./convert-js-to-header.rb <jsed.js >jsedjs.h
 
+
 if [ "$*" = "--static" ]
 then
-    g++ filter/filter.o js/js.o jsed.cpp  -I$STATIC_PREFIX/include -o jsed -Wl,$STATIC_PREFIX/lib/libjs_static.a
+    $CPP $CPP_FLAGS filter/filter.o js/js.o jsed.cpp  -I$STATIC_PREFIX/include -o jsed -Wl,$STATIC_PREFIX/lib/libjs_static.a
 else
-    g++ filter/filter.o js/js.o jsed.cpp -o jsed -I$PREFIX/include/js -L$PREFIX/lib -lmozjs185
+    $CPP $CPP_FLAGS filter/filter.o js/js.o jsed.cpp -o jsed -I$PREFIX/include/js -L$PREFIX/lib -lmozjs185
 fi
 
 echo Testing
@@ -74,7 +85,16 @@ function assertEq() {
 
 #Test should be able to transform json document that comes on a single line.
 INPUT='{"x":"value"}'
+set +e
 OUTPUT=`echo $INPUT | ./jsed 'function(x) x.x'`
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed test" >&2
+  echo $OUTPUT
+  exit 2
+fi
+set -e
+
 
 assertEq "transform single line json" \
          '"value"' "$OUTPUT"
@@ -109,8 +129,6 @@ OUTPUT=`echo "$INPUT" | ./jsed -m 'function(x) x.x'`
 
 assertEq "transform multiple, newline separated json documents" \
          "$EXPECTED" "$OUTPUT"
-
-
 
 
 INPUT=$(cat <<'EOF'

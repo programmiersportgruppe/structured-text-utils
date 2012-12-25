@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 
+
 /* The class of the global object. */
 static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
@@ -22,6 +23,21 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 }
 
 
+namespace js {
+    ValueRef::ValueRef(const ValueRef &that): delegate(that.delegate) {};
+
+    ValueRef & ValueRef::operator=(const ValueRef &rhs){delegate=rhs.delegate;};
+
+    // We are leaking memory.
+    ValueRef::ValueRef(std::string cRep): delegate(new String(cRep)){ };
+
+    // We are leaking memory.
+    ValueRef::ValueRef(bool cRep): delegate(new Boolean(cRep)){ };
+
+    ValueRef::ValueRef(const Value &value): delegate(&value){ };
+
+}
+
 class ContextWrapper {
     JSContext *cx;
 
@@ -35,17 +51,7 @@ class ContextWrapper {
         str = JS_ValueToString(cx, val);
         return JS_EncodeString(cx, str);
     }
-
-    jsval asJsValue(const std::string value) const {
-        JSString *intermediateForm = JS_NewStringCopyN(cx, value.c_str(), value.length());
-        return STRING_TO_JSVAL(intermediateForm);
-    }
-
-    jsval fromBool(bool b){
-        return b ? JSVAL_TRUE : JSVAL_FALSE;
-    }
 };
-
 
 JSBool _native_filter(JSContext *cx, uintN argc, jsval *vp)
 {
@@ -138,7 +144,7 @@ JSInterpreter::JSInterpreter() {
 
     }
 
-Function JSInterpreter::evaluateScript(std::string script){
+js::Function JSInterpreter::evaluateScript(std::string script){
     jsval rval;
     JSBool ok;
     const char *filename = "noname";
@@ -150,13 +156,22 @@ Function JSInterpreter::evaluateScript(std::string script){
         throw * new std::runtime_error("Could not evaluate script");
     }
 
-    return Function(*this, rval);
+    JSObject *obj;
+    JS_ValueToObject(cx, rval, &obj);
+    JSBool func = JS_ObjectIsFunction(cx, obj);
+    return js::Function(obj);
 }
 
-std::string JSInterpreter::invoke(const Function function, std::string input, Function transformation, bool raw, bool pretty) {
+std::string JSInterpreter::invoke(js::Function function, std::vector<js::ValueRef> args) {
     jsval r;
-    jsval args[] = { cw->asJsValue(input), transformation, cw->fromBool(raw), cw->fromBool(pretty)};
-    JS_CallFunctionValue(cx, NULL, function, 4, args, &r);
+
+    jsval jsArgs[args.size()];
+    for (int i = 0; i < args.size(); i++) {
+      jsArgs[i] = (*args[i]).toJsval(cx);
+
+    }
+
+    JS_CallFunctionValue(cx, NULL, function.toJsval(cx), args.size(), jsArgs, &r);
     return cw->jsvalToString(r);
 }
 
@@ -165,18 +180,5 @@ JSInterpreter::~JSInterpreter() {
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
     JS_ShutDown();
-}
-
-Function::Function(JSInterpreter &interpreter, jsval jsFunction):
-    interpreter(interpreter),
-    jsFunction(jsFunction)
-{}
-
-Function::operator jsval() const {
-    return jsFunction;
-}
-
-std::string Function::invoke(std::string input, Function transformation, bool raw, bool pretty) const {
-    return interpreter.invoke(*this, input, transformation, raw, pretty);
 }
 
