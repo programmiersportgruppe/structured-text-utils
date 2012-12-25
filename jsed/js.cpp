@@ -7,7 +7,7 @@
 
 /* Include the JSAPI header file to get access to SpiderMonkey. */
 #include "jsapi.h"
-
+#include "filter/filter.h"
 
 
 /* The class of the global object. */
@@ -40,11 +40,29 @@ class Function {
     std::string invoke(std::string input, Function transformation, bool raw, bool pretty) const;
 };
 
-
-JSBool justForFun(JSContext *cx, uintN argc, jsval *vp)
+JSBool filterWrapper(JSContext *cx, uintN argc, jsval *vp)
 {
-    printf("Hello from C\n");
-    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    if (argc < 2) {
+        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        //handler error
+        return JS_TRUE;
+    }
+    std::string input = JS_EncodeString(cx, JS_ValueToString(cx, JS_ARGV(cx, vp)[0]));
+    std::string command = JS_EncodeString(cx, JS_ValueToString(cx, JS_ARGV(cx, vp)[1]));
+
+    std::vector<std::string> args;
+    for (int i = 2; i < argc; i++){
+        args.push_back(JS_EncodeString(cx, JS_ValueToString(cx, JS_ARGV(cx, vp)[i])));
+        printf("X");
+    }
+    printf("echo '%s' | %s\n", input.c_str(), command.c_str());
+
+
+    std::string output = filter(input, command, args);
+    //try catch to handle error
+    JSString *intermediateForm = JS_NewStringCopyN(cx, output.c_str(), output.length());
+    JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(intermediateForm));
+
     return JS_TRUE;
 }
 
@@ -88,7 +106,7 @@ class JSInterpreter {
         if (!JS_InitStandardClasses(cx, global))
             throw * new std::runtime_error("Can't initialise standard classes.");
 
-        if (!JS_DefineFunction(cx, global, "justForFun", &justForFun, 0, 0))
+        if (!JS_DefineFunction(cx, global, "filterWrapper", &filterWrapper, 2, 0))
             throw * new std::runtime_error("Can't define function.");
 
     }

@@ -33,9 +33,9 @@ echo "--------------"
 
 if [ "$*" = "--static" ]
 then
-    g++ jsed.cpp -o jsed -I$STATIC_PREFIX/include -Wl,$STATIC_PREFIX/lib/libjs_static.a
+    g++ filter/filter.o jsed.cpp -o jsed -I$STATIC_PREFIX/include -Wl,$STATIC_PREFIX/lib/libjs_static.a
 else
-    g++ jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
+    g++ filter/filter.o jsed.cpp -o jsed -L$PREFIX/lib -lmozjs185 -I$PREFIX/include/js
 fi
 
 echo Testing

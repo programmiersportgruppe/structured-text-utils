@@ -1,3 +1,5 @@
+filterWrapper.apply(["hello", "say"]);
+
 Object.prototype.map = function(mapping) {
     var ret = {};
     for (var property in this) {
@@ -17,6 +19,10 @@ Object.prototype.filter = function(predicate) {
     }
     return ret;
 };
+
+String.prototype.pipe = function(command, args){
+    return filterWrapper.apply([this, command].concat(args));
+}
 
 
 function(input, transformation, raw, pretty){
