@@ -189,12 +189,10 @@ int main(int argc, const char *argv[])
                 std::cout << "\n";
             }
         }
-
     }
     catch(runtime_error& ex) {
         cerr << ex.what() << endl;
         cerr << "See 'jsed --help' for more information." << endl;
         return 1;
     }
-
 }
