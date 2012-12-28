@@ -77,6 +77,11 @@ namespace js {
 
 }
 
+/* Interface for a function implemented in C and to passed into the interpreter */
+class CFunc {
+    public:
+    virtual js::ValueRef operator() (std::vector<js::ValueRef> args) const = 0;
+};
 
 class JSInterpreter {
     private:
@@ -92,6 +97,8 @@ class JSInterpreter {
     JSInterpreter();
     JSInterpreter(const JSInterpreter&);
     js::Function evaluateScript(std::string script);
+
+    void registerNativeFunction(std::string name, CFunc *callback);
 
     std::string invoke(const js::Function function, std::vector<js::ValueRef> args);
 

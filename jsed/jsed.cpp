@@ -163,6 +163,20 @@ class Line {
     }
 };
 
+class FooCallback: public CFunc {
+    virtual js::ValueRef operator() (std::vector<js::ValueRef> args) const {
+        std::string rv("Lovely foo-return value");
+        return rv;
+    }
+};
+
+class BarCallback: public CFunc {
+    virtual js::ValueRef operator() (std::vector<js::ValueRef> args) const {
+        std::string rv("Lovely bar-return value");
+        return rv;
+    }
+};
+
 int main(int argc, const char *argv[])
 {
     try {
@@ -172,6 +186,9 @@ int main(int argc, const char *argv[])
             return 0;
 
         JSInterpreter js;
+
+        js.registerNativeFunction("foo", new FooCallback());
+        js.registerNativeFunction("bar", new BarCallback());
         js::Function transformation = js.evaluateScript(parser.script);
         Transformer transformer(js, transformation, parser.raw, parser.pretty);
 

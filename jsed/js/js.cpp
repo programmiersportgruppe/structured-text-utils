@@ -2,6 +2,7 @@
 #include "js.h"
 #include <string>
 #include <vector>
+#include <map>
 #include <stdexcept>
 
 
@@ -36,7 +37,7 @@ namespace js {
 
     ValueRef::ValueRef(const Value &value): delegate(&value){ };
 
-}
+};
 
 class ContextWrapper {
     JSContext *cx;
@@ -52,6 +53,33 @@ class ContextWrapper {
         return JS_EncodeString(cx, str);
     }
 };
+
+
+/* This is the global native function handler registry */
+
+std::map<int, CFunc *> functionHandlers;
+
+
+JSBool globalFunctionCallBack(JSContext *cx, uintN argc, jsval *vp){
+    jsval func=  JS_CALLEE(cx, vp);
+    JSObject *funcO = JSVAL_TO_OBJECT(func);
+    CFunc *callback = functionHandlers[(long)funcO];
+    //todo handle failed lookup.
+    std::vector<js::ValueRef> args;
+    try {
+        js::ValueRef returnValue = (*callback)(args);
+        JS_SET_RVAL(cx, vp, (*returnValue).toJsval(cx));
+        return JS_TRUE;
+    }
+    catch(std::runtime_error& ex){
+        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+
+        std::string message;
+        JS_ReportError(cx, (message + "Native function failed:\n" + ex.what()).c_str() );
+        return JS_FALSE;
+    }
+}
+
 
 JSBool _native_filter(JSContext *cx, uintN argc, jsval *vp)
 {
@@ -103,6 +131,13 @@ JSBool _native_filter(JSContext *cx, uintN argc, jsval *vp)
     return JS_TRUE;
 }
 
+void JSInterpreter::registerNativeFunction(std::string name, CFunc *callback) {
+    JSFunction *jsfunc = JS_DefineFunction(cx, global, name.c_str(), &globalFunctionCallBack, 2, 0);
+    if (!jsfunc)
+            throw * new std::runtime_error("Can't define function '"+name+"'.");
+
+    functionHandlers[(long)jsfunc]=callback;
+}
 
 JSInterpreter::JSInterpreter() {
         /* Create a JS runtime. You always need at least one runtime per process. */
@@ -137,8 +172,6 @@ JSInterpreter::JSInterpreter() {
         if (!JS_InitStandardClasses(cx, global))
             throw * new std::runtime_error("Can't initialise standard classes.");
 
-        if (!JS_DefineFunction(cx, global, "_native_filter", &_native_filter, 3, 0))
-            throw * new std::runtime_error("Can't define function.");
 
         cw = new ContextWrapper(cx);
 
@@ -159,6 +192,7 @@ js::Function JSInterpreter::evaluateScript(std::string script){
     JSObject *obj;
     JS_ValueToObject(cx, rval, &obj);
     JSBool func = JS_ObjectIsFunction(cx, obj);
+    //todo guard!
     return js::Function(obj);
 }
 
