@@ -3,19 +3,34 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <stdexcept>
 #include "jsapi.h"
 
 
-class ContextWrapper;
 
 
 namespace js {
+    class Boolean;
+    class String;
+    class Array;
+    class Function;
+
 
     class Value {
         public:
 
         virtual jsval toJsval(JSContext *cx) const = 0;
         virtual std::string toString() const = 0;
+
+        virtual bool isBoolean() const { return false; }
+        virtual bool isString() const { return false; }
+        virtual bool isArray() const { return false; }
+        virtual bool isFunction() const { return false; }
+
+        virtual Boolean & asBoolean() const { throw * new std::runtime_error("I am not a boolean"); }
+        virtual Array & asArray() const { throw * new std::runtime_error("I am not an array"); }
+        virtual String & asString() const { throw * new std::runtime_error("I am not a string"); }
+        virtual Function & asFunction() const { throw * new std::runtime_error("I am not a function"); }
     };
 
 
@@ -56,6 +71,9 @@ namespace js {
                 return cRep;
         }
 
+        virtual bool isString() const { return true; }
+        virtual String & asString() const { return * new String(cRep); }
+
     };
 
     class Boolean: public Value {
@@ -72,6 +90,10 @@ namespace js {
         virtual std::string toString() const {
                 return cRep ? "true":"false";
         }
+
+        virtual bool isBoolean() const { return true; }
+        virtual Boolean & asBoolean() const { return * new Boolean(cRep); }
+
     };
 
     class Array: public Value {
@@ -80,6 +102,10 @@ namespace js {
         public:
         Array(std::vector<ValueRef> cRep) : cRep(cRep)
             { }
+
+        std::vector<ValueRef> elements() {
+            return cRep;
+        }
 
         virtual jsval toJsval(JSContext *cx) const {
             return JSVAL_FALSE;
@@ -99,6 +125,9 @@ namespace js {
             return s;
         }
 
+        virtual bool isArray() const { return true; }
+        virtual Array & asArray() const { return * new Array(cRep); }
+
     };
 
     class Function: public Value {
@@ -114,6 +143,10 @@ namespace js {
         virtual std::string toString() const {
                 return "<function>";
         }
+
+        virtual bool isFunction() const {return false; }
+
+        virtual Function & asFunction() const { return * new Function(jsRep); }
 
     };
 
@@ -131,7 +164,7 @@ class JSInterpreter {
     JSRuntime *rt;
     JSContext *cx;
     JSObject  *global;
-    char *JSInterpreter::jsvalToString(const jsval val) const;
+    char* jsvalToString(const jsval val) const;
 
 
     public:

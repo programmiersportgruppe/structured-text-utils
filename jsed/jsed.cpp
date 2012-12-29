@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include "js/js.h"
 #include "jsedjs.h"
+#include "filter/filter.h"
+
 using namespace std;
 
 class Transformer {
@@ -178,12 +180,32 @@ class FooCallback: public CFunc {
     }
 };
 
-class BarCallback: public CFunc {
+
+class FilterCallback: public CFunc {
     virtual js::ValueRef operator() (std::vector<js::ValueRef> args) const {
-        std::string rv("Lovely bar-return value");
-        return rv;
+        if (args.size() != 3)
+            throw * new runtime_error(std::string("Native filter needs 3 arguments."));
+        if (!(*args[0]).isString())
+            throw * new runtime_error(std::string("First argument must be a string."));
+        if (!(*args[1]).isString())
+            throw * new runtime_error(std::string("Second argument must be a string."));
+        if (!(*args[2]).isArray())
+            throw * new runtime_error(std::string("Third argument must be an array."));
+
+        std::vector<js::ValueRef> jsfilterargs((*args[2]).asArray().elements());
+
+        std::vector<std::string> filterargs;
+
+        for (int i=0; i<jsfilterargs.size();i++){
+            filterargs.push_back((*jsfilterargs[i]).asString().toString());
+        }
+//        fprintf(stderr, "input: %s\n", (*args[0]).toString().c_str());
+        std::string output = filter((*args[0]).toString(), (*args[1]).toString(), filterargs);
+        return output;
     }
 };
+
+
 
 int main(int argc, const char *argv[])
 {
@@ -196,7 +218,7 @@ int main(int argc, const char *argv[])
         JSInterpreter js;
 
         js.registerNativeFunction("foo", new FooCallback());
-        js.registerNativeFunction("bar", new BarCallback());
+        js.registerNativeFunction("_native_filter", new FilterCallback());
         js::Function transformation = js.evaluateScript(parser.script);
         Transformer transformer(js, transformation, parser.raw, parser.pretty);
 

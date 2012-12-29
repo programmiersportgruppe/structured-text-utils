@@ -19,7 +19,14 @@ Object.prototype.filter = function(predicate) {
 };
 
 String.prototype.pipe = function(command, args){
-    return filterWrapper(this, command, args);
+    return filterWrapper(this.toString(), command, args);
+}
+
+function exec(command, args) {
+    if (!args) {
+        args = [];
+    }
+    return filterWrapper("", command, args);
 }
 
 
@@ -27,11 +34,14 @@ function toString(x) {
     return x.toString();
 }
 
+
 /** Wraps the native function and does validation */
 function filterWrapper(input, command, args){
     //todo: do some guarding here (signature string, string, array<string>))
     //
-    return _native_filter(input, command, ["x"]);
+//    if (!args)
+  //      args = [];
+    return _native_filter(input, command, args);
 }
 
 

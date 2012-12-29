@@ -67,14 +67,12 @@ js::ValueRef wrap(JSContext *cx, jsval val) {
         //todo: memory leak is my middle name
         js::String *jsstr = new js::String((std::string)JS_EncodeString(cx, str));
 
-        //fprintf(stderr, "trying to wrap %s.\n", jsstr.toString());
         return *jsstr;
     }
     if ( !JSVAL_IS_PRIMITIVE(val)) {
         JSObject* obj=JSVAL_TO_OBJECT(val);
         if (JS_IsArrayObject(cx, obj)){
             std::vector<js::ValueRef> els;
-            fprintf(stderr, "is array\n");
             jsuint length;
             JS_GetArrayLength(cx, obj, &length);
             for (int i = 0; i < length; i++){
@@ -82,6 +80,7 @@ js::ValueRef wrap(JSContext *cx, jsval val) {
                 JS_GetElement(cx, obj, i, &ret);
                 els.push_back(wrap(cx, ret));
             }
+            // leaking memory
             js::Array *array=new js::Array(els);
             return (*array);
         }
