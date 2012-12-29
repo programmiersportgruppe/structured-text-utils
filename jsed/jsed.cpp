@@ -69,6 +69,8 @@ class OptionParser {
     public:
 
     std::string script;
+
+
     bool showHelp;
     bool multiple;
     bool debug;
@@ -165,7 +167,13 @@ class Line {
 
 class FooCallback: public CFunc {
     virtual js::ValueRef operator() (std::vector<js::ValueRef> args) const {
+        fprintf(stderr, "Call to the foo callbcak\n");
+
         std::string rv("Lovely foo-return value");
+        for(int i=0; i<args.size(); i++) {
+            fprintf(stderr, "Arg %i = %s\n",i, (*args[i]).toString().c_str());
+        }
+
         return rv;
     }
 };

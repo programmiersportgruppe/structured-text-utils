@@ -2,6 +2,7 @@
 #define JS_H_INCLUDED
 #include <string>
 #include <vector>
+#include <sstream>
 #include "jsapi.h"
 
 
@@ -14,6 +15,7 @@ namespace js {
         public:
 
         virtual jsval toJsval(JSContext *cx) const = 0;
+        virtual std::string toString() const = 0;
     };
 
 
@@ -22,6 +24,7 @@ namespace js {
     class ValueRef {
         private:
         const Value *delegate;
+
         public:
         ValueRef(const ValueRef &that);
         ValueRef(std::string cRep);
@@ -48,6 +51,11 @@ namespace js {
             jsRep = JS_NewStringCopyN(cx, cRep.c_str(), cRep.length());
             return STRING_TO_JSVAL(jsRep);
         }
+
+        virtual std::string toString() const {
+                return cRep;
+        }
+
     };
 
     class Boolean: public Value {
@@ -60,6 +68,37 @@ namespace js {
         virtual jsval toJsval(JSContext *cx) const {
             return cRep ? JSVAL_TRUE : JSVAL_FALSE;
         }
+
+        virtual std::string toString() const {
+                return cRep ? "true":"false";
+        }
+    };
+
+    class Array: public Value {
+        private:
+        std::vector<ValueRef> cRep;
+        public:
+        Array(std::vector<ValueRef> cRep) : cRep(cRep)
+            { }
+
+        virtual jsval toJsval(JSContext *cx) const {
+            return JSVAL_FALSE;
+            //todo: implement me
+        }
+
+        virtual std::string toString() const {
+            std::stringstream ss;
+            for(size_t i = 0; i < cRep.size(); ++i)
+            {
+                if(i != 0)
+                ss << ",";
+                ValueRef element=cRep[i];
+                ss << (*element).toString();
+            }
+            std::string s = ss.str();
+            return s;
+        }
+
     };
 
     class Function: public Value {
@@ -71,6 +110,9 @@ namespace js {
 
         virtual jsval toJsval(JSContext *cx) const {
             return OBJECT_TO_JSVAL(jsRep);
+        }
+        virtual std::string toString() const {
+                return "<function>";
         }
 
     };
@@ -89,7 +131,7 @@ class JSInterpreter {
     JSRuntime *rt;
     JSContext *cx;
     JSObject  *global;
-    ContextWrapper *cw;
+    char *JSInterpreter::jsvalToString(const jsval val) const;
 
 
     public:

@@ -30,28 +30,16 @@ namespace js {
     ValueRef & ValueRef::operator=(const ValueRef &rhs){delegate=rhs.delegate;};
 
     // We are leaking memory.
-    ValueRef::ValueRef(std::string cRep): delegate(new String(cRep)){ };
+    ValueRef::ValueRef(std::string cRep): delegate(new String(cRep)){
+    };
 
     // We are leaking memory.
-    ValueRef::ValueRef(bool cRep): delegate(new Boolean(cRep)){ };
+    ValueRef::ValueRef(bool cRep): delegate(new Boolean(cRep)){
+    };
 
-    ValueRef::ValueRef(const Value &value): delegate(&value){ };
+    ValueRef::ValueRef(const Value &value): delegate(&value){
+    };
 
-};
-
-class ContextWrapper {
-    JSContext *cx;
-
-    public:
-    ContextWrapper(JSContext *cx):
-        cx(cx)
-    {}
-
-    char *jsvalToString(const jsval val) const {
-        JSString *str;
-        str = JS_ValueToString(cx, val);
-        return JS_EncodeString(cx, str);
-    }
 };
 
 
@@ -60,20 +48,64 @@ class ContextWrapper {
 std::map<int, CFunc *> functionHandlers;
 
 
-JSBool globalFunctionCallBack(JSContext *cx, uintN argc, jsval *vp){
+js::ValueRef wrap(JSContext *cx, jsval val) {
+
+    if ( JSVAL_IS_BOOLEAN(val)) {
+        return JSVAL_TO_BOOLEAN(val) ? true : false;
+    }
+    if ( JSVAL_IS_NULL(val)){
+     fprintf(stderr, "is null\n");
+     }
+    if ( JSVAL_IS_VOID(val)){
+     fprintf(stderr, "is void\n");
+     }
+    if ( JSVAL_IS_INT (val)){
+     fprintf(stderr, "is int\n");
+     }
+    if ( JSVAL_IS_STRING(val)) {
+        JSString *str = JSVAL_TO_STRING(val);
+        //todo: memory leak is my middle name
+        js::String *jsstr = new js::String((std::string)JS_EncodeString(cx, str));
+
+        //fprintf(stderr, "trying to wrap %s.\n", jsstr.toString());
+        return *jsstr;
+    }
+    if ( !JSVAL_IS_PRIMITIVE(val)) {
+        JSObject* obj=JSVAL_TO_OBJECT(val);
+        if (JS_IsArrayObject(cx, obj)){
+            std::vector<js::ValueRef> els;
+            fprintf(stderr, "is array\n");
+            jsuint length;
+            JS_GetArrayLength(cx, obj, &length);
+            for (int i = 0; i < length; i++){
+                jsval ret;
+                JS_GetElement(cx, obj, i, &ret);
+                els.push_back(wrap(cx, ret));
+            }
+            js::Array *array=new js::Array(els);
+            return (*array);
+        }
+    }
+    return (std::string)"<unknown type>";
+}
+
+JSBool globalFunctionCallBack(JSContext *cx, uintN argc, jsval *vp) {
     jsval func=  JS_CALLEE(cx, vp);
     JSObject *funcO = JSVAL_TO_OBJECT(func);
     CFunc *callback = functionHandlers[(long)funcO];
     //todo handle failed lookup.
     std::vector<js::ValueRef> args;
     try {
+        for (int i = 0; i < argc; i++) {
+            args.push_back(wrap(cx, JS_ARGV(cx, vp)[i]));
+        }
         js::ValueRef returnValue = (*callback)(args);
+
         JS_SET_RVAL(cx, vp, (*returnValue).toJsval(cx));
         return JS_TRUE;
     }
     catch(std::runtime_error& ex){
         JS_SET_RVAL(cx, vp, JSVAL_NULL);
-
         std::string message;
         JS_ReportError(cx, (message + "Native function failed:\n" + ex.what()).c_str() );
         return JS_FALSE;
@@ -81,55 +113,6 @@ JSBool globalFunctionCallBack(JSContext *cx, uintN argc, jsval *vp){
 }
 
 
-JSBool _native_filter(JSContext *cx, uintN argc, jsval *vp)
-{
-    if (argc != 3) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        JS_ReportError(cx, "_native_filter takes three arguments");
-        return JS_FALSE;
-    }
-    std::string input = JS_EncodeString(cx, JS_ValueToString(cx, JS_ARGV(cx, vp)[0]));
-    std::string command = JS_EncodeString(cx, JS_ValueToString(cx, JS_ARGV(cx, vp)[1]));
-    printf("%s | %s\n", input.c_str(), command.c_str());
-
-    JSObject* jsArgs;
-    jsval jsvalArgs=JS_ARGV(cx, vp[2]);
-    if(!JSVAL_IS_PRIMITIVE(jsvalArgs)){
-        printf("jsvalags is not primitive");
-    }
-    jsArgs = JSVAL_TO_OBJECT(jsvalArgs);
-    //JS_ValueToObject(cx, jsvalArgs, &jsArgs);
-    //
-    jsval r;
-    if (!JS_CallFunctionName(cx, JS_GetGlobalObject(cx), "toString", 0, NULL, &r))
-        printf("Failed to call to string\n");
-    if (JS_IsArrayObject(cx, jsArgs) == JS_FALSE) {
-        JS_ReportError(cx, "Third argument to _native_filter must be an array");
-        return JS_FALSE;
-    }
-    std::vector<std::string> args;
-    printf("Lo and behold\n");
-    jsuint argsArrayLength;
-    JS_GetArrayLength(cx, jsArgs, &argsArrayLength);
-    printf("%i\n", argsArrayLength);
-
-
-    for (int i = 0; i < argsArrayLength; i++){
-        jsval ret;
-        JS_GetElement(cx, jsArgs, i, &ret);
-
-        args.push_back(JS_EncodeString(cx, JS_ValueToString(cx, ret)));
-    }
-    printf("echo '%s' | %s\n", input.c_str(), command.c_str());
-
-
-    std::string output = "output";//filter(input, command, args);
-    //try catch to handle error
-    JSString *intermediateForm = JS_NewStringCopyN(cx, output.c_str(), output.length());
-    JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(intermediateForm));
-
-    return JS_TRUE;
-}
 
 void JSInterpreter::registerNativeFunction(std::string name, CFunc *callback) {
     JSFunction *jsfunc = JS_DefineFunction(cx, global, name.c_str(), &globalFunctionCallBack, 2, 0);
@@ -172,9 +155,6 @@ JSInterpreter::JSInterpreter() {
         if (!JS_InitStandardClasses(cx, global))
             throw * new std::runtime_error("Can't initialise standard classes.");
 
-
-        cw = new ContextWrapper(cx);
-
     }
 
 js::Function JSInterpreter::evaluateScript(std::string script){
@@ -196,6 +176,12 @@ js::Function JSInterpreter::evaluateScript(std::string script){
     return js::Function(obj);
 }
 
+char *JSInterpreter::jsvalToString(const jsval val) const {
+        JSString *str;
+        str = JS_ValueToString(cx, val);
+        return JS_EncodeString(cx, str);
+}
+
 std::string JSInterpreter::invoke(js::Function function, std::vector<js::ValueRef> args) {
     jsval r;
 
@@ -206,7 +192,7 @@ std::string JSInterpreter::invoke(js::Function function, std::vector<js::ValueRe
     }
 
     JS_CallFunctionValue(cx, NULL, function.toJsval(cx), args.size(), jsArgs, &r);
-    return cw->jsvalToString(r);
+    return jsvalToString(r);
 }
 
 JSInterpreter::~JSInterpreter() {
