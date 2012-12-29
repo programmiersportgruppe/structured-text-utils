@@ -290,7 +290,3 @@ OUTPUT=`echo "$INPUT" | ./jsed --raw 'function(x) "2\\n3\\n1".pipe("sort", ["-n"
 
 assertEq "pipe data through external tool" \
          "$EXPECTED" "$OUTPUT"
-
-
-
-

@@ -1,5 +1,4 @@
-Prerequisites
--------------
+# Prerequisites
 
 * `jsed` depends on the spidermonkey library being available on your machine.
 
@@ -7,14 +6,12 @@ Prerequisites
    spidermonkey (watch out there is a `sudo make install` in there).
 
 
-Compile
--------
+# Compile
 
 * To compile and run basic tests use the `build.sh` script provided. Please note that potentially
   you might have to fix the include and the lib path.
 
-Install
--------
+# Install
 
 * The `install.sh` script can be used to install jsed
 
