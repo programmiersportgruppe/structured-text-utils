@@ -1,11 +1,10 @@
-structured-text-utils
-=====================
+# structured-text-utils
 
 A group of utilities to deal with structured text such as json or yaml.
 
 
-jsed
-----
+## jsed
+
 
 A utility to filter json using a javascript function in the spirit of `sed` and `awk`.
 
@@ -42,8 +41,7 @@ will yield:
 "Lisa"
 ~~~
 
-stpl
-----
+## stpl
 
 A utility to instantiate StringTemplate templates with JSON data.
 
@@ -66,8 +64,7 @@ Grades: F, F, F
 ~~~
 
 
-yaml2json
----------
+## yaml2json
 
 A utitility to convert YAML to JSON
 
@@ -91,8 +88,9 @@ will yield:
 ~~~
 
 
-sqljson
--------
+## sqljson
+
+A utility to run sql queries to return json. Not yet implemented.
 
 ~~~~
 t
