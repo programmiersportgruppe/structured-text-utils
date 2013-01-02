@@ -38,7 +38,8 @@ namespace js {
 
     class ValueRef {
         private:
-        const Value *delegate;
+        const Value &delegate;
+        const bool owner;
 
         public:
         ValueRef(const ValueRef &that);
@@ -49,8 +50,10 @@ namespace js {
         ValueRef & operator=(const ValueRef &rhs);
 
         inline const Value& operator * () {
-            return *delegate;
+            return delegate;
         }
+
+        ~ValueRef();
     };
 
 

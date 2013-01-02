@@ -25,20 +25,29 @@ void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 
 
 namespace js {
-    ValueRef::ValueRef(const ValueRef &that): delegate(that.delegate) {};
+    ValueRef::ValueRef(const ValueRef &that): delegate(that.delegate), owner(false) {};
 
-    ValueRef & ValueRef::operator=(const ValueRef &rhs){delegate=rhs.delegate;};
+    ValueRef & ValueRef::operator=(const ValueRef &rhs){ throw * new std::runtime_error("Huh, this should never happen");};
 
-    // We are leaking memory.
-    ValueRef::ValueRef(std::string cRep): delegate(new String(cRep)){
-    };
+
 
     // We are leaking memory.
-    ValueRef::ValueRef(bool cRep): delegate(new Boolean(cRep)){
+    ValueRef::ValueRef(std::string cRep): delegate(* new String(cRep)), owner(true) {
+
     };
 
-    ValueRef::ValueRef(const Value &value): delegate(&value){
+    // We are leaking memory.
+    ValueRef::ValueRef(bool cRep): delegate(* new Boolean(cRep)), owner(true) {
     };
+
+    ValueRef::ValueRef(const Value &value): delegate(value), owner(false) {
+    };
+
+    ValueRef::~ValueRef() {
+        if (owner) {
+//            delete &delegate;
+        }
+    }
 
 };
 
