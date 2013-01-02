@@ -75,15 +75,17 @@ std::string filter(std::string input, std::string command, std::vector<std::stri
 
     std::stringstream buffer;
     buffer << out.rdbuf();
-
     std::string output = buffer.str();
+
     std::stringstream errBuffer;
     errBuffer << err.rdbuf();
+
     int stat_loc;
     waitpid(pid, &stat_loc, 0);
     int exitCode = stat_loc >> 8;
     if (exitCode != 0)
         throw * new runtime_error(std::string("Error executing '") + command + "'\n" + errBuffer.str().c_str());
+
     return output;
 }
 
