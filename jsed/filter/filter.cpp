@@ -8,7 +8,8 @@
 #include <vector>
 #include "fdstream.hpp"
 #include <stdexcept>
-
+#include <sys/types.h>
+#include <sys/wait.h>
 using namespace std;
 
 /*

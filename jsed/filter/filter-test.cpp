@@ -3,6 +3,7 @@
 #include <vector>
 #include <sstream>
 #include <stdexcept>
+#include <stdio.h>
 #include "filter.h"
 using namespace std;
 // test function for our filter function
