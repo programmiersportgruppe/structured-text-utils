@@ -81,6 +81,12 @@ class OptionParser {
     std::string inPlaceFile;
 
     OptionParser(int argc, const char *argv[]) throw (runtime_error) {
+        debug = false;
+        showHelp = false;
+        multiple = false;
+        pretty = false;
+        raw = false;
+
         for (int i=1; i < argc; i++){
             string next(argv[i]);
             if (next == "-m" || next == "--multi-docs") {
