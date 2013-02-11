@@ -7,11 +7,11 @@ PLATFORM="`uname`-`uname -m`"
 ARCHIVE_NAME=structured-text-utils-$VERSION-$PLATFORM
 
 cd jsed
-./build.sh
+./build.sh --static
 cd ..
 
 cd stpl
-./build.sh
+./build.sh --static
 cd ..
 
 cd yaml2json
