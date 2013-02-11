@@ -59,7 +59,7 @@ echo "--------------"
 
 if [ "$*" = "--static" ]
 then
-    $CPP $CPP_FLAGS filter/filter.o js/js.o jsed.cpp  -I$STATIC_PREFIX/include -o jsed -Wl,$STATIC_PREFIX/lib/libjs_static.a
+    $CPP $CPP_FLAGS filter/filter.o js/js.o jsed.cpp  -I$STATIC_PREFIX/include -lpthread -o jsed -Wl,$STATIC_PREFIX/lib/libjs_static.a
 else
     $CPP $CPP_FLAGS filter/filter.o js/js.o jsed.cpp -o jsed -I$PREFIX/include/js -L$PREFIX/lib -lmozjs185
 fi
