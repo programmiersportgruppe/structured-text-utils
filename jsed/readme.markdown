@@ -1,18 +1,3 @@
-# Usage
-~~~
-Usage: jsed [options] [--in-place filename] (transformation | -f file)
-   transformation   Transformation function
-   file             File containing transformation function
-Options:
-   -m, --multi-docs Expects input to be multiple documents
-                    formatted on a single line and separated
-                    by new lines
-   -r, --raw        Produces raw string output
-   -p, --pretty     Pretty print json output
-   -h, --help       Display help message
-   -d, --debug      Print debug information
-~~~
-
 # Cookbook
 
 ## Basic Usage
@@ -33,7 +18,8 @@ yields:
 There is also support for pretty-printed json using the `--pretty` option.
 
 ~~~ {.bash}
-echo '{"firstName": "Bart", "lastName": "Simpson"}' | jsed --pretty 'function(x) ({name: x.firstName + " " + x.lastName})'
+echo '{"firstName": "Bart", "lastName": "Simpson"}' \
+| jsed --pretty 'function(x) ({name: x.firstName + " " + x.lastName})'
 ~~~
 
 yields:
@@ -91,10 +77,89 @@ yields:
 {"name":"Lisa"}
 ~~~
 
-
 ## Javascript Helpers
 
+`jsed` does provide methods that can be used in transformations.
 
+### `filter` objects/ hashes
+
+The `filter` method for `object`s works similar
+to the `filter` method for `array`s. It takes a predicate that
+has two parameters the key and the value for each element.
+
+In the following example pairs get filtered depending on the value
+component:
+
+~~~ {.bash}
+echo '{ "name": "felix", "occupation": "developer", "test":"hello"}' \
+| jsed 'function(x) x.filter(function(k, v) v != "hello")'
+~~~
+
+yields:
+
+~~~
+{"name":"felix","occupation":"developer"}
+~~~
+
+### `map` objects/ hashes
+
+The `map` method on `object` works simlar to
+the `map` method on `array`. A transformation function
+gets applied to each key value pair, and returns the new value
+
+
+~~~ {.bash}
+echo '{ "name": "felix", "occupation": "developer"}'\
+| jsed 'function(x) x.map(function(k, v) v.toUpperCase())'
+~~~
+
+yields:
+
+~~~ {.json}
+{"name":"FELIX","occupation":"DEVELOPER"}
+~~~
+
+### `pipe` strings
+
+The `pipe` method allows to pipe/ filter strings through an external utility.
+It takes two arguments, the name of the utility and a an array containing the command
+line parameters.
+
+~~~ {.bash}
+echo '{"value":"hello\ngoodbye"}'|jsed --raw 'function(x) x.value.pipe("grep", ["hel"])'
+~~~
+
+yields:
+
+~~~
+hello
+~~~
+
+## Getting Help
+
+`jsed` tries to be a good citizen in the unix world and
+hence provides a basic command line reference when
+invoked with the `--help` parameter:
+
+~~~ {.bash}
+jsed --help
+~~~
+
+yields:
+
+~~~
+Usage: jsed [options] [--in-place filename] (transformation | -f file)
+   transformation   Transformation function
+   file             File containing transformation function
+Options:
+   -m, --multi-docs Expects input to be multiple documents
+                    formatted on a single line and separated
+                    by new lines
+   -r, --raw        Produces raw string output
+   -p, --pretty     Pretty print json output
+   -h, --help       Display help message
+   -d, --debug      Print debug information
+~~~
 
 
 # Compiling jsed
