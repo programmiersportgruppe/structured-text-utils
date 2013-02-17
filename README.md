@@ -31,24 +31,8 @@ yields:
 
 The javascript version used is 1.85, so we can use the nice expression syntax that is shown above.
 
-[More about `jsed`](jsed/readme.markdown)
+[More about jsed...](jsed/readme.markdown)
 
-There is also a multi document mode that supports applying the function to multiple JSON documents that are
-rendered into single lines separated by newline characters:
-
-~~~~ .bash
-jsed -m 'function(x) x.firstName' << END
-{"firstName":"Bart","lastName":"Simpson"}
-{"firstName":"Lisa","lastName":"Simpson"}
-END
-~~~~
-
-will yield:
-
-~~~
-"Bart"
-"Lisa"
-~~~
 
 ## stpl
 
