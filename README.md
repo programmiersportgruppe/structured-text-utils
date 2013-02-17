@@ -19,18 +19,19 @@ A utility to filter json using a javascript function in the spirit of `sed` and 
 This is best illustrated with an example:
 
 ~~~ .bash
-echo '{"firstName": "Bart", "lastName": "Simpson"}' | jsed 'function(x) x.firstName + " " + x.lastName'
+echo '{"firstName": "Bart", "lastName": "Simpson"}' | jsed 'function(x) ({name: x.firstName + " " + x.lastName})'
 ~~~
 
 yields:
 
 ~~~
-"Bart Simpson"
+{"name":"Bart Simpson"}
 ~~~
 
-(Note the double quotes, the result is being rendered as JSON)
 
 The javascript version used is 1.85, so we can use the nice expression syntax that is shown above.
+
+[More about `jsed`](jsed/readme.markdown)
 
 There is also a multi document mode that supports applying the function to multiple JSON documents that are
 rendered into single lines separated by newline characters:
