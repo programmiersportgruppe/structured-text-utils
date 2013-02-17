@@ -1,3 +1,18 @@
+# Usage
+~~~
+Usage: jsed [options] [--in-place filename] (transformation | -f file)
+   transformation   Transformation function
+   file             File containing transformation function
+Options:
+   -m, --multi-docs Expects input to be multiple documents
+                    formatted on a single line and separated
+                    by new lines
+   -r, --raw        Produces raw string output
+   -p, --pretty     Pretty print json output
+   -h, --help       Display help message
+   -d, --debug      Print debug information
+~~~
+
 # Cookbook
 
 ## Basic Usage
@@ -15,6 +30,29 @@ yields:
 {"name":"Bar Simpson"}
 ~~~
 
+There is also support for pretty-printed json using the `--pretty` option.
+
+~~~ {.bash}
+echo '{"firstName": "Bart", "lastName": "Simpson"}' | jsed --pretty 'function(x) ({name: x.firstName + " " + x.lastName})'
+~~~
+
+yields:
+
+~~~ {.json}
+{
+    "name": "Bart Simpson"
+}
+~~~
+
+The transformation function can also be read from a file using the `-f` parameter.
+This comes handy when transformations are more complicated.
+
+~~~ {.bash}
+echo 'function(x) ({name: x.firstName + " " + x.lastName})'>fun.js
+echo '{"firstName": "Bart", "lastName": "Simpson"}' | jsed -f fun.js
+~~~
+
+
 
 ## Raw Output
 
@@ -31,30 +69,16 @@ yields:
 Bart Simpson
 ~~~
 
-## Pretty Output
 
-There is also support for pretty-printed json using the `--pretty` option.
 
-~~~ {.bash}
-echo '{"firstName": "Bart", "lastName": "Simpson"}' | jsed --pretty 'function(x) ({name: x.firstName + " " + x.lastName})'
-~~~
-
-yields:
-
-~~~ {.json}
-{
-    "name": "Bart Simpson"
-}
-~~~
-
-## Multi-Document Stream Support
+## Multi Document Stream Support
 
 The multi document mode supports applying the function to streams
 of newline separated JSON documents. It is activated with the
 `--multi-docs` option:
 
 ~~~~ .bash
-jsed --multi-docs 'function(x) x.firstName' << END
+jsed --multi-docs 'function(x) ({name: x.firstName})' << END
 {"firstName":"Bart","lastName":"Simpson"}
 {"firstName":"Lisa","lastName":"Simpson"}
 END
@@ -63,9 +87,14 @@ END
 yields:
 
 ~~~
-"Bart"
-"Lisa"
+{"name":"Bart"}
+{"name":"Lisa"}
 ~~~
+
+
+## Javascript Helpers
+
+
 
 
 # Compiling jsed
