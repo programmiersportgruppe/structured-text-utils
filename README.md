@@ -8,7 +8,7 @@ We supply archives with pre-compiled binaries for several platforms.
 They contain a simple installer
 script that installs the binaries to /usr/local/bin.
 
-* [Darwin-x86_64](http://www.programmiersportgruppe.org/files/2013/02/structured-text-utils-0.1-Darwin-x86_64.tar.bz2)
+* [Darwin-x86_64](http://www.programmiersportgruppe.org/files/2013/02/structured-text-utils-0.1-Darwin-x86_64.tar_.bz2)
 * [Linux-x86_64](http://www.programmiersportgruppe.org/files/2013/02/structured-text-utils-0.1-Linux-x86_64.tar_.bz2)
 
 ## jsed
