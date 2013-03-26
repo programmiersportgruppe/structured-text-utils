@@ -49,14 +49,14 @@ install_libjs() {
 
     make
 
+    cd ../../..
+
     if [ -f "$lib_file" ]; then
         echo "Static lib successfully available"
     else
         echo "Error building static lib!"
         exit 1
     fi
-
-    cd ../../..
 }
 
 install_libjs
