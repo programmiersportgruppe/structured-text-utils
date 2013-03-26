@@ -268,6 +268,7 @@ EOF
 ./jsed --in-place tmp.json --pretty 'function(x) x.filter(function(k, v) v === "felix")'
 
 OUTPUT=`cat tmp.json`
+rm tmp.json
 
 assertEq "support in place editing" \
          "$EXPECTED" "$OUTPUT"

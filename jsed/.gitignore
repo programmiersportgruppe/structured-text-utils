@@ -1,5 +1,10 @@
-deps/
-jsedjs.h
-jsed
-tags
-*.swp
+# Dependencies
+/deps/
+
+# Intermediate files
+*.h
+*.o
+
+# Output binaries
+/filter/tester
+/jsed
