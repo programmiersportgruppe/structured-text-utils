@@ -161,6 +161,19 @@ Options:
    -d, --debug      Print debug information
 ~~~
 
+# Installing
+
+
+`jsed` is distributed as part of the structured-text-utils tarball.
+
+
+The archive contains a simple installer
+script that installs the binaries to /usr/local/bin.
+
+* [Darwin-x86_64](http://www.programmiersportgruppe.org/files/2013/02/structured-text-utils-0.1-Darwin-x86_64.tar_.bz2)
+* [Linux-x86_64](http://www.programmiersportgruppe.org/files/2013/02/structured-text-utils-0.1-Linux-x86_64.tar_.bz2)
+
+
 
 # Compiling jsed
 
